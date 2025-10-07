@@ -51,10 +51,32 @@
     <!-- Theme color for mobile browsers -->
     <meta name="theme-color" content="#ff6b6b">
     
+    <!-- Preload critical resources -->
+    <link rel="preload" href="./assets/css/main.css" as="style">
+    <link rel="preload" href="./assets/js/main.js" as="script">
+    <link rel="preload" href="./assets/images/artist-photo.jpg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/braccio_1.jpg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/braccio_2.jpg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/gamba_1.jpg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/torso_1.jpg" as="image">
+    
     <!-- Styles -->
     <link rel="stylesheet" href="./assets/css/main.css">
 </head>
-<body>
+<body class="loading">
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader__content">
+            <h1 class="preloader__logo">@sken.blk</h1>
+            <div class="preloader__spinner"></div>
+            <p class="preloader__text">Caricamento portfolio...</p>
+            <div class="preloader__progress">
+                <div class="preloader__progress-bar" id="progress-bar"></div>
+            </div>
+            <div class="preloader__percentage" id="progress-text">0%</div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="nav" id="main-nav" role="navigation" aria-label="Menu principale">
         <div class="nav__container">
@@ -244,14 +266,14 @@
                         <div class="about__studio">
                             <h3 class="about__studio-title">Il Circo Nero Tattoo Milano</h3>
                             <div class="about__studio-content">
-                                <img src="./assets/images/circo-nero-logo.svg" alt="Il Circo Nero Tattoo Logo" class="about__studio-logo">
+                                <img src="./assets/images/ilcirconero.png" alt="Il Circo Nero Tattoo Logo" class="about__studio-logo">
                                 <p>Studio di tatuaggi artistici nel cuore di Milano, specializzato in stili alternativi e ricerca estetica contemporanea.</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="about__image">
-                        <img src="./assets/images/artist-photo.jpg" alt="@sken.blk nel suo studio" class="about__photo" loading="lazy">
+                        <img src="./assets/images/luca.png" alt="@sken.blk nel suo studio" class="about__photo" loading="lazy">
                     </div>
                 </div>
             </div>
@@ -340,11 +362,11 @@
                             </div>
                             <div class="contact__item">
                                 <span class="contact__label">Indirizzo:</span>
-                                <span class="contact__value">Via Example, 123<br>20100 Milano (MI)</span>
+                                <span class="contact__value">Il Circo Nero Tattoo<br>Milano (MI)</span>
                             </div>
                             <div class="contact__item">
                                 <span class="contact__label">Telefono:</span>
-                                <a href="tel:+39123456789" class="contact__link">+39 123 456 789</a>
+                                <a href="tel:+393272127922" class="contact__link">+39 327 212 7922</a>
                             </div>
                             <div class="contact__item">
                                 <span class="contact__label">Email:</span>
@@ -376,9 +398,11 @@
                         
                         <div class="map__container">
                             <iframe 
-                                src="https://www.openstreetmap.org/export/embed.html?bbox=9.1859%2C45.4641%2C9.1879%2C45.4661&amp;layer=mapnik"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2797.925735875876!2d9.1848148!3d45.4618993!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4786c715532049e5%3A0x4337febb6f3c5aba!2sIL%20CIRCO%20NERO%20TATTOO%20Milano!5e0!3m2!1sit!2sit!4v1696636800000!5m2!1sit!2sit"
                                 class="map__iframe"
                                 loading="lazy"
+                                allowfullscreen=""
+                                referrerpolicy="no-referrer-when-downgrade"
                                 title="Mappa dello studio Il Circo Nero Tattoo Milano">
                             </iframe>
                         </div>
@@ -469,94 +493,6 @@
                 </div>
             </div>
         </section>
-
-        <!-- Apprentice Section -->
-        <section class="apprentice" id="apprentice">
-            <div class="container">
-                <header class="section__header">
-                    <h2 class="section__title">Lavora con noi</h2>
-                    <p class="section__subtitle">Il Circo Nero cerca nuovi apprendisti tatuatori</p>
-                </header>
-                
-                <div class="apprentice__content">
-                    <div class="apprentice__info">
-                        <h3>Opportunità di apprendistato</h3>
-                        <p>Stai cercando di entrare nel mondo del tatuaggio? Il nostro studio offre opportunità di apprendistato per artisti motivati e talentuosi.</p>
-                        
-                        <h4>Cosa offriamo:</h4>
-                        <ul class="apprentice__benefits">
-                            <li>Formazione completa dalle basi alle tecniche avanzate</li>
-                            <li>Mentorship da parte di artisti esperti</li>
-                            <li>Ambiente professionale e creativo</li>
-                            <li>Opportunità di crescita nel settore</li>
-                        </ul>
-                        
-                        <h4>Requisiti:</h4>
-                        <ul class="apprentice__requirements">
-                            <li>Passione genuina per l'arte del tatuaggio</li>
-                            <li>Portfolio artistico (disegno, pittura, design)</li>
-                            <li>Disponibilità full-time</li>
-                            <li>Attitudine al lavoro di squadra</li>
-                            <li>Rispetto delle norme igieniche e di sicurezza</li>
-                        </ul>
-                    </div>
-                    
-                    <form class="apprentice__form" id="apprentice-form" novalidate>
-                        <h3>Candidati ora</h3>
-                        
-                        <div class="form__group">
-                            <label for="app-name" class="form__label">Nome completo *</label>
-                            <input type="text" id="app-name" name="name" class="form__input" required>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-email" class="form__label">Email *</label>
-                            <input type="email" id="app-email" name="email" class="form__input" required>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-phone" class="form__label">Telefono *</label>
-                            <input type="tel" id="app-phone" name="phone" class="form__input" required>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-age" class="form__label">Età *</label>
-                            <input type="number" id="app-age" name="age" class="form__input" min="18" max="65" required>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-experience" class="form__label">Esperienza artistica</label>
-                            <textarea id="app-experience" name="experience" class="form__textarea" rows="4" placeholder="Descrivi la tua formazione ed esperienza artistica..."></textarea>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-motivation" class="form__label">Motivazione *</label>
-                            <textarea id="app-motivation" name="motivation" class="form__textarea" rows="4" required placeholder="Perché vuoi diventare un tatuatore? Cosa ti motiva?"></textarea>
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-portfolio" class="form__label">Link Portfolio/Instagram</label>
-                            <input type="url" id="app-portfolio" name="portfolio" class="form__input" placeholder="https://...">
-                        </div>
-                        
-                        <div class="form__group">
-                            <label for="app-availability" class="form__label">Disponibilità *</label>
-                            <select id="app-availability" name="availability" class="form__select" required>
-                                <option value="">Seleziona disponibilità</option>
-                                <option value="immediate">Immediata</option>
-                                <option value="1month">Entro 1 mese</option>
-                                <option value="3months">Entro 3 mesi</option>
-                                <option value="6months">Entro 6 mesi</option>
-                            </select>
-                        </div>
-                        
-                        <button type="submit" class="btn btn--primary btn--full">
-                            Invia candidatura
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
     </main>
 
     <!-- Footer -->
@@ -564,7 +500,7 @@
         <div class="container">
             <div class="footer__grid">
                 <div class="footer__brand">
-                    <img src="./assets/images/logo-sken.svg" alt="@sken.blk" class="footer__logo">
+                    <img src="./assets/images/favicon.png" alt="@sken.blk" class="footer__logo">
                     <p class="footer__description">Dark • Fluid • Blackwork<br>Resident Artist @ Il Circo Nero Milano</p>
                 </div>
                 
@@ -575,15 +511,14 @@
                         <li><a href="#about">About</a></li>
                         <li><a href="#booking">Booking</a></li>
                         <li><a href="#faq">FAQ</a></li>
-                        <li><a href="#apprentice">Lavora con noi</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer__contact">
                     <h4 class="footer__title">Contatti</h4>
                     <ul class="footer__list">
-                        <li><a href="tel:+39123456789">+39 123 456 789</a></li>
-                        <li><a href="mailto:info@skenblk.com">info@skenblk.com</a></li>
+                        <li><a href="tel:+393272127922">+39 327 212 7922</a></li>
+                        <li><a href="mailto:skenone@gmail.com">skenone@gmail.com</a></li>
                         <li><a href="https://instagram.com/sken.blk" target="_blank" rel="noopener">@sken.blk</a></li>
                     </ul>
                 </div>
@@ -600,7 +535,6 @@
             
             <div class="footer__bottom">
                 <p>&copy; 2025 @sken.blk. Tutti i diritti riservati.</p>
-                <p>Il Circo Nero Tattoo Milano</p>
             </div>
         </div>
     </footer>
@@ -629,6 +563,13 @@
             </div>
         </div>
     </div>
+
+    <!-- WhatsApp Button -->
+    <a href="https://wa.me/393272127922?text=Ciao%20Sken!%20vorrei%20qualche%20informazione%20in%20più%20riguardo%20un%20tattoo" target="_blank" rel="noopener" class="whatsapp-btn" aria-label="Contattaci su WhatsApp">
+        <svg viewBox="0 0 24 24" class="whatsapp-icon">
+            <path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.484 3.696z"/>
+        </svg>
+    </a>
 
     <!-- Back to top -->
     <button class="back-to-top" id="back-to-top" aria-label="Torna all'inizio">

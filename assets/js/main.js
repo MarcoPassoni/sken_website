@@ -5,6 +5,167 @@
 (function() {
     'use strict';
 
+    // ===== PRELOADER SYSTEM =====
+    const PreloaderSystem = {
+        totalAssets: 0,
+        loadedAssets: 0,
+        progressBar: null,
+        progressText: null,
+        preloader: null,
+
+        init() {
+            this.progressBar = document.getElementById('progress-bar');
+            this.progressText = document.getElementById('progress-text');
+            this.preloader = document.getElementById('preloader');
+            
+            // Safety timeout - hide preloader after max 10 seconds
+            this.safetyTimeout = setTimeout(() => {
+                console.warn('Preloader timeout reached, force showing website');
+                this.onAllAssetsLoaded();
+            }, 10000);
+            
+            // Preload critical assets
+            this.preloadAssets();
+        },
+
+        async preloadAssets() {
+            const criticalAssets = this.getCriticalAssets();
+            this.totalAssets = criticalAssets.length;
+
+            console.log(`Preloading ${this.totalAssets} critical assets...`);
+
+            // Preload all assets in parallel but track progress
+            const promises = criticalAssets.map(asset => this.loadAsset(asset));
+            
+            try {
+                await Promise.allSettled(promises);
+                this.onAllAssetsLoaded();
+            } catch (error) {
+                console.warn('Some assets failed to load:', error);
+                this.onAllAssetsLoaded(); // Still proceed to show the site
+            }
+        },
+
+        getCriticalAssets() {
+            const assets = [];
+
+            // Hero images and videos
+            assets.push('./assets/images/artist-photo.jpg');
+            assets.push('./assets/images/videos/kling_20250820_Image_to_Video__5915_0.mp4');
+            assets.push('./assets/images/videos/3b47eaae-5fba-4cac-96b2-6926e8ec99b5.mp4');
+            
+            // Portfolio images (first load)
+            const portfolioImages = [
+                './assets/images/portfolio/braccio_1.jpg',
+                './assets/images/portfolio/braccio_2.jpg',
+                './assets/images/portfolio/braccio_3.jpg',
+                './assets/images/portfolio/gamba_1.jpg',
+                './assets/images/portfolio/gamba_2.jpg',
+                './assets/images/portfolio/gamba_3.jpg',
+                './assets/images/portfolio/torso_1.jpg',
+                './assets/images/portfolio/torso_2.jpg',
+                './assets/images/portfolio/schiena_1.jpg',
+                './assets/images/portfolio/schiena_2.jpg',
+                './assets/images/portfolio/collo_1.jpg',
+                './assets/images/portfolio/viso_1.jpg'
+            ];
+            
+            assets.push(...portfolioImages);
+            
+            // Essential UI images
+            assets.push('./assets/images/favicon.png');
+            assets.push('./assets/images/og-image.jpg');
+
+            return assets;
+        },
+
+        loadAsset(src) {
+            return new Promise((resolve, reject) => {
+                const isVideo = src.includes('.mp4') || src.includes('.webm');
+                const element = isVideo ? document.createElement('video') : document.createElement('img');
+                
+                const onLoad = () => {
+                    this.loadedAssets++;
+                    this.updateProgress();
+                    resolve(src);
+                };
+
+                const onError = () => {
+                    console.warn(`Failed to load asset: ${src}`);
+                    this.loadedAssets++;
+                    this.updateProgress();
+                    resolve(src); // Resolve anyway to not block the loading
+                };
+
+                if (isVideo) {
+                    element.addEventListener('canplaythrough', onLoad, { once: true });
+                    element.addEventListener('error', onError, { once: true });
+                    element.muted = true;
+                    element.preload = 'metadata';
+                } else {
+                    element.addEventListener('load', onLoad, { once: true });
+                    element.addEventListener('error', onError, { once: true });
+                }
+
+                element.src = src;
+            });
+        },
+
+        updateProgress() {
+            const percentage = Math.round((this.loadedAssets / this.totalAssets) * 100);
+            
+            if (this.progressBar) {
+                this.progressBar.style.width = `${percentage}%`;
+            }
+            
+            if (this.progressText) {
+                this.progressText.textContent = `${percentage}%`;
+            }
+
+            console.log(`Loading progress: ${this.loadedAssets}/${this.totalAssets} (${percentage}%)`);
+        },
+
+        onAllAssetsLoaded() {
+            console.log('All critical assets loaded!');
+            
+            // Clear safety timeout
+            if (this.safetyTimeout) {
+                clearTimeout(this.safetyTimeout);
+            }
+            
+            // Ensure 100% is shown
+            if (this.progressBar) {
+                this.progressBar.style.width = '100%';
+            }
+            if (this.progressText) {
+                this.progressText.textContent = '100%';
+            }
+
+            // Wait a moment then hide preloader
+            setTimeout(() => {
+                this.hidePreloader();
+            }, 500);
+        },
+
+        hidePreloader() {
+            document.body.classList.remove('loading');
+            
+            if (this.preloader) {
+                this.preloader.classList.add('hidden');
+                
+                // Remove preloader from DOM after animation
+                setTimeout(() => {
+                    if (this.preloader && this.preloader.parentNode) {
+                        this.preloader.parentNode.removeChild(this.preloader);
+                    }
+                }, 500);
+            }
+
+            // Initialize main application
+            initializeApp();
+        }
+    };
+
     // ===== CONSTANTS & CONFIGURATION =====
     const CONFIG = {
         ANIMATION_DURATION: 300,
@@ -1295,7 +1456,11 @@
     };
 
     // ===== INITIALIZATION =====
-    document.addEventListener('DOMContentLoaded', () => {
+    
+    // Initialize app after preloading is complete
+    function initializeApp() {
+        console.log('🎨 Initializing @sken.blk website...');
+        
         // Initialize all modules
         Navigation.init();
         Theme.init();
@@ -1312,6 +1477,12 @@
         document.body.classList.add('loaded');
 
         console.log('🎨 @sken.blk website initialized successfully!');
+    }
+
+    // Start preloading when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('🎨 Starting @sken.blk website preloader...');
+        PreloaderSystem.init();
     });
 
     // ===== ERROR HANDLING =====
