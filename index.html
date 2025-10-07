@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="@sken.blk - Artista del tatuaggio specializzato in dark tattoo, fluid tattoo e blackwork. Resident artist presso Il Circo Nero Tattoo Milano. Booking e walk-ins disponibili.">
+    <meta name="keywords" content="tattoo Milano, dark tattoo, fluid tattoo, blackwork, Il Circo Nero, tatuaggi artistici, walk-in tattoo">
+    <meta name="author" content="@sken.blk">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="@sken.blk - Dark & Fluid Tattoo Artist">
+    <meta property="og:description" content="Artista del tatuaggio specializzato in dark tattoo, fluid tattoo e blackwork presso Il Circo Nero Tattoo Milano">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://skenblk.com">
+        <meta property="og:image" content="./assets/images/og-image.jpg">
+    <meta property="og:locale" content="it_IT">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@sken.blk - Dark & Fluid Tattoo Artist">
+    <meta name="twitter:description" content="Artista del tatuaggio specializzato in dark tattoo, fluid tattoo e blackwork presso Il Circo Nero Tattoo Milano">
+    <meta name="twitter:image" content="./assets/images/og-image.jpg">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "@sken.blk",
+        "jobTitle": "Tattoo Artist",
+        "description": "Artista del tatuaggio specializzato in dark tattoo, fluid tattoo e blackwork",
+        "worksFor": {
+            "@type": "Organization",
+            "name": "Il Circo Nero Tattoo Milano",
+            "address": {
+                "@type": "PostalAddress",
+                "addressLocality": "Milano",
+                "addressCountry": "IT"
+            }
+        },
+        "knowsAbout": ["Dark Tattoo", "Fluid Tattoo", "Blackwork"],
+        "url": "https://skenblk.com"
+    }
+    </script>
+    
+    <title>@sken.blk - Dark & Fluid Tattoo Artist | Il Circo Nero Milano</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="./assets/images/favicon.png">
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#ff6b6b">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="./assets/css/main.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav" id="main-nav" role="navigation" aria-label="Menu principale">
+        <div class="nav__container">
+            <a href="#home" class="nav__logo" aria-label="Torna alla home">
+                <img src="./assets/images/favicon.png" alt="@sken.blk logo" width="120" height="40">
+            </a>
+            
+            <button class="nav__toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-menu" aria-label="Apri menu">
+                <span class="nav__burger"></span>
+            </button>
+            
+            <ul class="nav__menu" id="nav-menu" role="menubar">
+                <li class="nav__item" role="none">
+                    <a href="#home" class="nav__link" role="menuitem">Home</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#portfolio" class="nav__link" role="menuitem">Portfolio</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#video-showcase" class="nav__link" role="menuitem">Process</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#about" class="nav__link" role="menuitem">About</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#booking" class="nav__link" role="menuitem">Booking</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#faq" class="nav__link" role="menuitem">FAQ</a>
+                </li>
+                <li class="nav__item" role="none">
+                    <a href="#apprentice" class="nav__link" role="menuitem">Lavora con noi</a>
+                </li>
+            </ul>
+            
+            <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
+                <span class="theme-toggle__icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero__background">
+                <video class="hero__video" autoplay muted loop playsinline poster="./assets/images/artist-photo.jpg" aria-hidden="true">
+                    <source src="./assets/images/videos/kling_20250820_Image_to_Video__5915_0.mp4" type="video/mp4">
+                    <source src="./assets/images/videos/3b47eaae-5fba-4cac-96b2-6926e8ec99b5.mp4" type="video/mp4">
+                </video>
+                <div class="hero__overlay"></div>
+            </div>
+            
+            <div class="hero__content">
+                <div class="container">
+                    <h1 class="hero__title">
+                        <span class="hero__name">@sken.blk</span>
+                        <span class="hero__subtitle">Dark • Fluid • Blackwork</span>
+                    </h1>
+                    
+                    <p class="hero__description">
+                        Resident Artist presso <strong>Il Circo Nero Tattoo Milano</strong><br>
+                        Specializzato in tatuaggi dalle forme organiche e dall'estetica oscura
+                    </p>
+                    
+                    <div class="hero__cta">
+                        <a href="#booking" class="btn btn--primary">Prenota ora</a>
+                        <a href="#portfolio" class="btn btn--secondary">Scopri i lavori</a>
+                    </div>
+                    
+                    <div class="hero__info">
+                        <div class="hero__info-item">
+                            <span class="hero__info-label">Walk-ins welcome</span>
+                            <span class="hero__info-text">Disponibilità immediate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <a href="#portfolio" class="hero__scroll" aria-label="Scorri per vedere il portfolio">
+                <span class="hero__scroll-text">Scorri</span>
+            </a>
+        </section>
+
+        <!-- Portfolio Section -->
+        <section class="portfolio" id="portfolio">
+            <div class="container">
+                <header class="section__header">
+                    <h2 class="section__title">Portfolio</h2>
+                    <p class="section__subtitle">Una selezione dei miei lavori più rappresentativi</p>
+                </header>
+                
+                <div class="portfolio__filters">
+                    <button class="filter-btn filter-btn--active" data-filter="all">Tutti</button>
+                    <button class="filter-btn" data-filter="dark">Dark</button>
+                    <button class="filter-btn" data-filter="fluid">Fluid</button>
+                    <button class="filter-btn" data-filter="blackwork">Blackwork</button>
+                </div>
+                
+                <div class="portfolio__body-filters">
+                    <select class="body-filter" id="body-filter" aria-label="Filtra per area del corpo">
+                        <option value="all">Tutte le aree</option>
+                        <option value="arm">Braccio</option>
+                        <option value="avambraccio">Avambraccio</option>
+                        <option value="spalla">Spalla</option>
+                        <option value="polpaccio">Polpaccio</option>
+                        <option value="gamba">Gamba</option>
+                        <option value="polso">Polso</option>
+                        <option value="dita">Dita</option>
+                        <option value="orecchio">Orecchio</option>
+                        <option value="bozza">Bozza</option>
+                    </select>
+                </div>
+                
+                <div class="portfolio__grid" id="portfolio-grid">
+                    <!-- Portfolio items will be dynamically loaded -->
+                </div>
+                
+                <button class="btn btn--outline portfolio__load-more" id="load-more">
+                    Carica altri lavori
+                </button>
+            </div>
+        </section>
+
+        <!-- Video Showcase Section -->
+        <section class="video-showcase" id="video-showcase">
+            <div class="container">
+                <header class="section__header">
+                    <h2 class="section__title">Process & Work</h2>
+                    <p class="section__subtitle">Dietro le quinte del mio processo creativo</p>
+                </header>
+                
+                <div class="video-showcase__grid">
+                    <div class="video-showcase__item">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_8330.png">
+                            <source src="./assets/images/videos/kling_20250820_Image_to_Video__5940_0.mp4" type="video/mp4">
+                            Il tuo browser non supporta i video HTML5.
+                        </video>
+                        <div class="video-showcase__info">
+                            <h3>Tecnica Dark Tattoo</h3>
+                            <p>Processo creativo per la realizzazione di un tatuaggio dark</p>
+                        </div>
+                    </div>
+                    
+                    <div class="video-showcase__item">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_6653.png">
+                            <source src="./assets/images/videos/kling_20250820_Image_to_Video__5971_0.mp4" type="video/mp4">
+                            Il tuo browser non supporta i video HTML5.
+                        </video>
+                        <div class="video-showcase__info">
+                            <h3>Blackwork Evolution</h3>
+                            <p>Evoluzione di un design blackwork dalla bozza al risultato finale</p>
+                        </div>
+                    </div>
+                    
+                    <div class="video-showcase__item">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_8335.png">
+                            <source src="./assets/images/videos/kling_20250820_Image_to_Video__6009_0.mp4" type="video/mp4">
+                            Il tuo browser non supporta i video HTML5.
+                        </video>
+                        <div class="video-showcase__info">
+                            <h3>Fluid Art Process</h3>
+                            <p>Il mio approccio ai tatuaggi fluidi e organici</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about" id="about">
+            <div class="container">
+                <div class="about__grid">
+                    <div class="about__content">
+                        <header class="section__header">
+                            <h2 class="section__title">About</h2>
+                            <p class="section__subtitle">La mia storia nell'arte del tatuaggio</p>
+                        </header>
+                        
+                        <div class="about__text">
+                            <p>Sono @sken.blk, artista del tatuaggio con una passione per l'estetica oscura e le forme fluide. La mia specializzazione nel <strong>dark tattoo</strong>, <strong>fluid tattoo</strong> e <strong>blackwork</strong> nasce da anni di ricerca artistica e perfezionamento tecnico.</p>
+                            
+                            <p>Attualmente sono <strong>resident artist</strong> presso <em>Il Circo Nero Tattoo</em> a Milano, uno studio che condivide la mia visione artistica e la mia attenzione per la qualità e l'innovazione.</p>
+                            
+                            <p>Ogni tatuaggio è per me un'opera unica che nasce dalla collaborazione con il cliente, unendo la sua visione personale al mio stile distintivo caratterizzato da linee organiche, negative space e contrasti marcati.</p>
+                        </div>
+                        
+                        <div class="about__studio">
+                            <h3 class="about__studio-title">Il Circo Nero Tattoo Milano</h3>
+                            <div class="about__studio-content">
+                                <img src="./assets/images/circo-nero-logo.svg" alt="Il Circo Nero Tattoo Logo" class="about__studio-logo">
+                                <p>Studio di tatuaggi artistici nel cuore di Milano, specializzato in stili alternativi e ricerca estetica contemporanea.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="about__image">
+                        <img src="./assets/images/artist-photo.jpg" alt="@sken.blk nel suo studio" class="about__photo" loading="lazy">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Booking Section -->
+        <section class="booking" id="booking">
+            <div class="container">
+                <header class="section__header">
+                    <h2 class="section__title">Booking & Contatti</h2>
+                    <p class="section__subtitle">Prenota la tua sessione o contattami per informazioni</p>
+                </header>
+                
+                <div class="booking__grid">
+                    <div class="booking__form-container">
+                        <div class="booking__walkin">
+                            <h3 class="booking__walkin-title">Walk-ins Welcome!</h3>
+                            <p>Accetto anche clienti senza appuntamento negli orari di apertura dello studio</p>
+                        </div>
+                        
+                        <form class="booking__form" id="booking-form" novalidate>
+                            <div class="form__group">
+                                <label for="name" class="form__label">Nome *</label>
+                                <input type="text" id="name" name="name" class="form__input" required aria-describedby="name-error">
+                                <span class="form__error" id="name-error"></span>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="email" class="form__label">Email *</label>
+                                <input type="email" id="email" name="email" class="form__input" required aria-describedby="email-error">
+                                <span class="form__error" id="email-error"></span>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="phone" class="form__label">Telefono</label>
+                                <input type="tel" id="phone" name="phone" class="form__input">
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="tattoo-type" class="form__label">Tipo di tatuaggio</label>
+                                <select id="tattoo-type" name="tattoo-type" class="form__select">
+                                    <option value="">Seleziona uno stile</option>
+                                    <option value="dark">Dark Tattoo</option>
+                                    <option value="fluid">Fluid Tattoo</option>
+                                    <option value="blackwork">Blackwork</option>
+                                    <option value="custom">Personalizzato</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="body-area" class="form__label">Area del corpo</label>
+                                <select id="body-area" name="body-area" class="form__select">
+                                    <option value="">Seleziona un'area</option>
+                                    <option value="arm">Braccio</option>
+                                    <option value="back">Schiena</option>
+                                    <option value="chest">Petto</option>
+                                    <option value="leg">Gamba</option>
+                                    <option value="other">Altro</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form__group">
+                                <label for="message" class="form__label">Descrizione del progetto *</label>
+                                <textarea id="message" name="message" class="form__textarea" rows="5" required aria-describedby="message-error" placeholder="Descrivi la tua idea, dimensioni approssimative, riferimenti..."></textarea>
+                                <span class="form__error" id="message-error"></span>
+                            </div>
+                            
+                            <!-- Honeypot field for spam protection -->
+                            <div class="form__honeypot">
+                                <input type="text" name="website" tabindex="-1" aria-hidden="true">
+                            </div>
+                            
+                            <button type="submit" class="btn btn--primary btn--full">
+                                <span class="btn__text">Invia richiesta</span>
+                                <span class="btn__loading">Invio in corso...</span>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="booking__info">
+                        <div class="contact__card">
+                            <h3 class="contact__title">Informazioni di contatto</h3>
+                            <div class="contact__item">
+                                <span class="contact__label">Studio:</span>
+                                <span class="contact__value">Il Circo Nero Tattoo Milano</span>
+                            </div>
+                            <div class="contact__item">
+                                <span class="contact__label">Indirizzo:</span>
+                                <span class="contact__value">Via Example, 123<br>20100 Milano (MI)</span>
+                            </div>
+                            <div class="contact__item">
+                                <span class="contact__label">Telefono:</span>
+                                <a href="tel:+39123456789" class="contact__link">+39 123 456 789</a>
+                            </div>
+                            <div class="contact__item">
+                                <span class="contact__label">Email:</span>
+                                <a href="mailto:info@skenblk.com" class="contact__link">info@skenblk.com</a>
+                            </div>
+                            <div class="contact__item">
+                                <span class="contact__label">Instagram:</span>
+                                <a href="https://instagram.com/sken.blk" class="contact__link" target="_blank" rel="noopener">@sken.blk</a>
+                            </div>
+                        </div>
+                        
+                        <div class="hours__card">
+                            <h3 class="hours__title">Orari di apertura</h3>
+                            <div class="hours__list">
+                                <div class="hours__item">
+                                    <span class="hours__day">Lun - Ven</span>
+                                    <span class="hours__time">10:00 - 20:00</span>
+                                </div>
+                                <div class="hours__item">
+                                    <span class="hours__day">Sabato</span>
+                                    <span class="hours__time">10:00 - 18:00</span>
+                                </div>
+                                <div class="hours__item hours__item--closed">
+                                    <span class="hours__day">Domenica</span>
+                                    <span class="hours__time">Chiuso</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="map__container">
+                            <iframe 
+                                src="https://www.openstreetmap.org/export/embed.html?bbox=9.1859%2C45.4641%2C9.1879%2C45.4661&amp;layer=mapnik"
+                                class="map__iframe"
+                                loading="lazy"
+                                title="Mappa dello studio Il Circo Nero Tattoo Milano">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq" id="faq">
+            <div class="container">
+                <header class="section__header">
+                    <h2 class="section__title">FAQ & Aftercare</h2>
+                    <p class="section__subtitle">Domande frequenti e cura del tatuaggio</p>
+                </header>
+                
+                <div class="faq__grid">
+                    <div class="faq__list">
+                        <div class="faq__item">
+                            <button class="faq__question" aria-expanded="false">
+                                <span>Quanto costa un tatuaggio?</span>
+                                <span class="faq__icon"></span>
+                            </button>
+                            <div class="faq__answer">
+                                <p>I prezzi variano in base a dimensioni, complessità e tempo di realizzazione. Contattami per un preventivo personalizzato basato sulla tua idea.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq__item">
+                            <button class="faq__question" aria-expanded="false">
+                                <span>Quanto tempo richiede la guarigione?</span>
+                                <span class="faq__icon"></span>
+                            </button>
+                            <div class="faq__answer">
+                                <p>La guarigione superficiale richiede circa 2-3 settimane, mentre quella completa può richiedere fino a 2-3 mesi. Segui sempre le istruzioni per l'aftercare.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq__item">
+                            <button class="faq__question" aria-expanded="false">
+                                <span>Posso vedere il design prima della sessione?</span>
+                                <span class="faq__icon"></span>
+                            </button>
+                            <div class="faq__answer">
+                                <p>Sì, preparo sempre un design personalizzato che ti mostrerò prima di iniziare. Possiamo apportare modifiche fino a quando non sei completamente soddisfatto.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq__item">
+                            <button class="faq__question" aria-expanded="false">
+                                <span>Accetti walk-ins?</span>
+                                <span class="faq__icon"></span>
+                            </button>
+                            <div class="faq__answer">
+                                <p>Sì! Accetto clienti senza appuntamento negli orari di apertura, compatibilmente con la disponibilità. Per progetti complessi consiglio di prenotare.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="aftercare">
+                        <h3 class="aftercare__title">Istruzioni Aftercare</h3>
+                        <div class="aftercare__content">
+                            <h4>Primi giorni (1-3)</h4>
+                            <ul class="aftercare__list">
+                                <li>Rimuovi il bendaggio dopo 2-4 ore</li>
+                                <li>Lava delicatamente con sapone neutro</li>
+                                <li>Asciuga tamponando, non strofinare</li>
+                                <li>Applica una crema specifica per tatuaggi</li>
+                            </ul>
+                            
+                            <h4>Settimane successive (1-3)</h4>
+                            <ul class="aftercare__list">
+                                <li>Continua a idratare regolarmente</li>
+                                <li>Evita sole diretto e immersioni</li>
+                                <li>Non grattare o rimuovere le crosticine</li>
+                                <li>Indossa vestiti comodi e traspiranti</li>
+                            </ul>
+                            
+                            <h4>Da evitare</h4>
+                            <ul class="aftercare__list">
+                                <li>Piscine, mare e saune per 2-3 settimane</li>
+                                <li>Esposizione diretta al sole</li>
+                                <li>Attività fisica intensa per i primi giorni</li>
+                                <li>Alcol e droghe nelle 24h precedenti/successive</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Apprentice Section -->
+        <section class="apprentice" id="apprentice">
+            <div class="container">
+                <header class="section__header">
+                    <h2 class="section__title">Lavora con noi</h2>
+                    <p class="section__subtitle">Il Circo Nero cerca nuovi apprendisti tatuatori</p>
+                </header>
+                
+                <div class="apprentice__content">
+                    <div class="apprentice__info">
+                        <h3>Opportunità di apprendistato</h3>
+                        <p>Stai cercando di entrare nel mondo del tatuaggio? Il nostro studio offre opportunità di apprendistato per artisti motivati e talentuosi.</p>
+                        
+                        <h4>Cosa offriamo:</h4>
+                        <ul class="apprentice__benefits">
+                            <li>Formazione completa dalle basi alle tecniche avanzate</li>
+                            <li>Mentorship da parte di artisti esperti</li>
+                            <li>Ambiente professionale e creativo</li>
+                            <li>Opportunità di crescita nel settore</li>
+                        </ul>
+                        
+                        <h4>Requisiti:</h4>
+                        <ul class="apprentice__requirements">
+                            <li>Passione genuina per l'arte del tatuaggio</li>
+                            <li>Portfolio artistico (disegno, pittura, design)</li>
+                            <li>Disponibilità full-time</li>
+                            <li>Attitudine al lavoro di squadra</li>
+                            <li>Rispetto delle norme igieniche e di sicurezza</li>
+                        </ul>
+                    </div>
+                    
+                    <form class="apprentice__form" id="apprentice-form" novalidate>
+                        <h3>Candidati ora</h3>
+                        
+                        <div class="form__group">
+                            <label for="app-name" class="form__label">Nome completo *</label>
+                            <input type="text" id="app-name" name="name" class="form__input" required>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-email" class="form__label">Email *</label>
+                            <input type="email" id="app-email" name="email" class="form__input" required>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-phone" class="form__label">Telefono *</label>
+                            <input type="tel" id="app-phone" name="phone" class="form__input" required>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-age" class="form__label">Età *</label>
+                            <input type="number" id="app-age" name="age" class="form__input" min="18" max="65" required>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-experience" class="form__label">Esperienza artistica</label>
+                            <textarea id="app-experience" name="experience" class="form__textarea" rows="4" placeholder="Descrivi la tua formazione ed esperienza artistica..."></textarea>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-motivation" class="form__label">Motivazione *</label>
+                            <textarea id="app-motivation" name="motivation" class="form__textarea" rows="4" required placeholder="Perché vuoi diventare un tatuatore? Cosa ti motiva?"></textarea>
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-portfolio" class="form__label">Link Portfolio/Instagram</label>
+                            <input type="url" id="app-portfolio" name="portfolio" class="form__input" placeholder="https://...">
+                        </div>
+                        
+                        <div class="form__group">
+                            <label for="app-availability" class="form__label">Disponibilità *</label>
+                            <select id="app-availability" name="availability" class="form__select" required>
+                                <option value="">Seleziona disponibilità</option>
+                                <option value="immediate">Immediata</option>
+                                <option value="1month">Entro 1 mese</option>
+                                <option value="3months">Entro 3 mesi</option>
+                                <option value="6months">Entro 6 mesi</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn--primary btn--full">
+                            Invia candidatura
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">
+                <div class="footer__brand">
+                    <img src="./assets/images/logo-sken.svg" alt="@sken.blk" class="footer__logo">
+                    <p class="footer__description">Dark • Fluid • Blackwork<br>Resident Artist @ Il Circo Nero Milano</p>
+                </div>
+                
+                <div class="footer__links">
+                    <h4 class="footer__title">Links</h4>
+                    <ul class="footer__list">
+                        <li><a href="#portfolio">Portfolio</a></li>
+                        <li><a href="#about">About</a></li>
+                        <li><a href="#booking">Booking</a></li>
+                        <li><a href="#faq">FAQ</a></li>
+                        <li><a href="#apprentice">Lavora con noi</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer__contact">
+                    <h4 class="footer__title">Contatti</h4>
+                    <ul class="footer__list">
+                        <li><a href="tel:+39123456789">+39 123 456 789</a></li>
+                        <li><a href="mailto:info@skenblk.com">info@skenblk.com</a></li>
+                        <li><a href="https://instagram.com/sken.blk" target="_blank" rel="noopener">@sken.blk</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer__legal">
+                    <h4 class="footer__title">Legal</h4>
+                    <ul class="footer__list">
+                        <li><a href="./privacy.html">Privacy Policy</a></li>
+                        <li><a href="./cookie.html">Cookie Policy</a></li>
+                        <li><a href="./terms.html">Termini e Condizioni</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer__bottom">
+                <p>&copy; 2025 @sken.blk. Tutti i diritti riservati.</p>
+                <p>Il Circo Nero Tattoo Milano</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+        <div class="lightbox__overlay" role="button" tabindex="0" aria-label="Chiudi lightbox"></div>
+        <div class="lightbox__content">
+            <button class="lightbox__close" aria-label="Chiudi lightbox">&times;</button>
+            <button class="lightbox__prev" aria-label="Immagine precedente">&lt;</button>
+            <button class="lightbox__next" aria-label="Immagine successiva">&gt;</button>
+            
+            <div class="lightbox__image-container">
+                <img class="lightbox__image" alt="">
+            </div>
+            
+            <div class="lightbox__info">
+                <h3 class="lightbox__title" id="lightbox-title"></h3>
+                <div class="lightbox__details">
+                    <span class="lightbox__style"></span>
+                    <span class="lightbox__area"></span>
+                    <span class="lightbox__year"></span>
+                    <span class="lightbox__duration"></span>
+                </div>
+                <p class="lightbox__description"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to top -->
+    <button class="back-to-top" id="back-to-top" aria-label="Torna all'inizio">
+        <span class="back-to-top__icon">↑</span>
+    </button>
+
+    <!-- Scripts -->
+    <script src="./assets/js/main.js"></script>
+</body>
+</html>
