@@ -3,76 +3,207 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  min-width: 100vw;
+  background: 
+    radial-gradient(circle at 50% 50%, rgba(5, 5, 5, 0.75) 0%, rgba(15, 15, 15, 0.85) 40%, rgba(0, 0, 0, 0.92) 100%),
+    url('../images/favicon.png') center center no-repeat;
+  background-size: cover, 800px 800px;
+  background-blend-mode: multiply, normal;
+  background-attachment: fixed;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 10000;
+  z-index: 99999;
   transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
 }
 
+.preloader::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('../images/favicon.png') center center no-repeat;
+  background-size: 700px 700px;
+  opacity: 0.25;
+  animation: backgroundPulse 3s ease-in-out infinite;
+  z-index: -1;
+  background-attachment: fixed;
+}
+
+.preloader::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: url('../images/favicon.png') center center no-repeat;
+  background-size: 900px 900px;
+  opacity: 0.12;
+  animation: backgroundPulse 5s ease-in-out infinite reverse;
+  z-index: -2;
+  background-attachment: fixed;
+}
+
 .preloader.hidden {
-  opacity: 0;
-  visibility: hidden;
+  animation: splashFade 0.8s ease-out forwards;
 }
 
 .preloader__content {
   text-align: center;
   color: #ffffff;
+  position: relative;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4rem;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 0 50px rgba(0, 0, 0, 0.5),
+    0 0 100px rgba(255, 255, 255, 0.05);
+}
+
+/* Splash effect classes */
+.preloader.splash-complete {
+  background: radial-gradient(circle at center, 
+    rgba(255, 255, 255, 0.05) 0%, 
+    rgba(0, 0, 0, 0.95) 70%, 
+    #0a0a0a 100%);
+}
+
+.preloader.splash-complete .preloader__content {
+  animation: fadeInUp 0.6s ease-out reverse;
 }
 
 .preloader__logo {
   font-family: var(--font-family-display);
-  font-size: 3rem;
-  font-weight: 700;
-  margin-bottom: 2rem;
+  font-size: 5rem;
+  font-weight: 900;
+  margin-bottom: 3rem;
   opacity: 0;
   animation: fadeInUp 1s ease-out 0.2s forwards;
+  text-shadow: 
+    0 0 30px rgba(255, 255, 255, 0.5),
+    0 0 60px rgba(255, 255, 255, 0.3),
+    0 0 90px rgba(255, 255, 255, 0.1);
+  letter-spacing: 3px;
+  color: #ffffff;
+  text-transform: lowercase;
+  position: relative;
+}
+
+.preloader__logo::before {
+  content: '@sken.blk';
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: rgba(255, 255, 255, 0.1);
+  z-index: -1;
+  transform: translate(2px, 2px);
 }
 
 .preloader__spinner {
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top: 3px solid #ff6b6b;
+  width: 80px;
+  height: 80px;
+  border: 4px solid rgba(255, 255, 255, 0.08);
+  border-top: 4px solid rgba(255, 255, 255, 0.6);
+  border-right: 4px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 2rem;
+  animation: spin 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  margin: 0 auto 3rem;
+  box-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.05);
 }
 
 .preloader__text {
-  font-size: 1rem;
-  color: #cccccc;
-  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
   opacity: 0;
   animation: fadeInUp 1s ease-out 0.4s forwards;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 
 .preloader__progress {
-  width: 300px;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
+  width: 400px;
+  height: 6px;
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 100%);
+  border-radius: 15px;
   overflow: hidden;
-  margin: 1rem auto;
+  margin: 2rem auto;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 
+    0 0 15px rgba(255, 255, 255, 0.1),
+    inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.preloader__progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%);
+  animation: shimmer 2s ease-in-out infinite;
 }
 
 .preloader__progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.4) 30%,
+    rgba(255, 255, 255, 0.6) 70%,
+    rgba(255, 255, 255, 0.3) 100%);
   width: 0%;
-  transition: width 0.3s ease;
-  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 15px;
+  position: relative;
+  box-shadow: 
+    0 0 20px rgba(255, 255, 255, 0.2),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.1);
+}
+
+.preloader__progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30px;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 100%);
+  border-radius: 0 15px 15px 0;
+  filter: blur(3px);
 }
 
 .preloader__percentage {
-  font-size: 0.875rem;
-  color: #999999;
-  margin-top: 0.5rem;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: 1rem;
   font-family: var(--font-family-mono);
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  letter-spacing: 2px;
 }
 
 @keyframes spin {
@@ -91,7 +222,62 @@
   }
 }
 
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(300%); }
+}
+
+@keyframes splashFade {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.05);
+    visibility: hidden;
+  }
+}
+
+@keyframes contentReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes backgroundPulse {
+  0% {
+    opacity: 0.08;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0.08;
+    transform: scale(0.95);
+  }
+}
+
 /* Hide main content until loaded */
+body.loading {
+  overflow: hidden;
+  height: 100vh;
+}
+
 body.loading main {
   opacity: 0;
   visibility: hidden;
@@ -100,6 +286,30 @@ body.loading main {
 body.loading .nav {
   opacity: 0;
   visibility: hidden;
+}
+
+/* Ensure full screen coverage */
+html.loading,
+body.loading {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Content reveal after splash */
+body.loaded main,
+body.loaded .nav {
+  animation: contentReveal 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+body.loaded .hero__content {
+  animation: contentReveal 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+}
+
+body.loaded .portfolio__item {
+  animation: contentReveal 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.4s forwards;
+  opacity: 0;
 }
 
 /* ===== CSS CUSTOM PROPERTIES ===== */
@@ -483,6 +693,31 @@ img {
       0 0 25px rgba(255,255,255,0.08),
       inset 0 0 4px rgba(255,255,255,0.08);
   }
+  
+  /* Tablet responsive preloader */
+  .preloader {
+    background-size: cover, 600px 600px;
+  }
+  
+  .preloader::after {
+    background-size: 500px 500px;
+  }
+  
+  .preloader::before {
+    background-size: 700px 700px;
+  }
+  
+  .preloader__content {
+    padding: 3rem;
+  }
+  
+  .preloader__logo {
+    font-size: 4rem;
+  }
+  
+  .preloader__progress {
+    width: 350px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -493,6 +728,43 @@ img {
   
   .nav__logo::before {
     animation: rotate 6s linear infinite;
+  }
+  
+  /* Responsive preloader */
+  .preloader {
+    background-size: cover, 500px 500px;
+  }
+  
+  .preloader::after {
+    background-size: 400px 400px;
+  }
+  
+  .preloader::before {
+    background-size: 600px 600px;
+  }
+  
+  .preloader__content {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .preloader__progress {
+    width: 300px;
+    height: 4px;
+  }
+  
+  .preloader__logo {
+    font-size: 3.5rem;
+    letter-spacing: 2px;
+  }
+  
+  .preloader__spinner {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .preloader__percentage {
+    font-size: 1rem;
   }
 }
 

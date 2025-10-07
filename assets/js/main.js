@@ -148,21 +148,40 @@
         },
 
         hidePreloader() {
-            document.body.classList.remove('loading');
+            console.log('Starting splash effect...');
             
             if (this.preloader) {
-                this.preloader.classList.add('hidden');
+                // Add splash effect class
+                this.preloader.classList.add('splash-complete');
                 
-                // Remove preloader from DOM after animation
+                // Start splash transition
                 setTimeout(() => {
-                    if (this.preloader && this.preloader.parentNode) {
-                        this.preloader.parentNode.removeChild(this.preloader);
-                    }
-                }, 500);
+                    this.preloader.classList.add('hidden');
+                }, 300);
+                
+                // Remove preloader and show content
+                setTimeout(() => {
+                    document.documentElement.classList.remove('loading');
+                    document.body.classList.remove('loading');
+                    document.body.classList.add('loaded');
+                    
+                    // Initialize main application
+                    initializeApp();
+                    
+                    // Remove preloader from DOM after all animations
+                    setTimeout(() => {
+                        if (this.preloader && this.preloader.parentNode) {
+                            this.preloader.parentNode.removeChild(this.preloader);
+                        }
+                    }, 400);
+                }, 600);
+            } else {
+                // Fallback if no preloader element
+                document.documentElement.classList.remove('loading');
+                document.body.classList.remove('loading');
+                document.body.classList.add('loaded');
+                initializeApp();
             }
-
-            // Initialize main application
-            initializeApp();
         }
     };
 
