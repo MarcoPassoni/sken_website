@@ -14,15 +14,13 @@
         preloader: null,
 
         init() {
-            this.progressBar = document.getElementById('progress-bar');
-            this.progressText = document.getElementById('progress-text');
             this.preloader = document.getElementById('preloader');
             
-            // Safety timeout - hide preloader after max 10 seconds
+            // Safety timeout - hide preloader after max 3 seconds for minimal approach
             this.safetyTimeout = setTimeout(() => {
                 console.warn('Preloader timeout reached, force showing website');
                 this.onAllAssetsLoaded();
-            }, 10000);
+            }, 3000);
             
             // Preload critical assets
             this.preloadAssets();
@@ -54,20 +52,20 @@
             assets.push('./assets/images/videos/kling_20250820_Image_to_Video__5915_0.mp4');
             assets.push('./assets/images/videos/3b47eaae-5fba-4cac-96b2-6926e8ec99b5.mp4');
             
-            // Portfolio images (first load)
+            // Portfolio images (first load) - using real filenames
             const portfolioImages = [
-                './assets/images/portfolio/braccio_1.jpg',
-                './assets/images/portfolio/braccio_2.jpg',
-                './assets/images/portfolio/braccio_3.jpg',
-                './assets/images/portfolio/gamba_1.jpg',
-                './assets/images/portfolio/gamba_2.jpg',
-                './assets/images/portfolio/gamba_3.jpg',
-                './assets/images/portfolio/torso_1.jpg',
-                './assets/images/portfolio/torso_2.jpg',
-                './assets/images/portfolio/schiena_1.jpg',
-                './assets/images/portfolio/schiena_2.jpg',
-                './assets/images/portfolio/collo_1.jpg',
-                './assets/images/portfolio/viso_1.jpg'
+                './assets/images/portfolio/IMG_0092.jpeg',
+                './assets/images/portfolio/IMG_3407.jpeg',
+                './assets/images/portfolio/IMG_3605.jpeg',
+                './assets/images/portfolio/IMG_3634.jpeg',
+                './assets/images/portfolio/IMG_3774.jpeg',
+                './assets/images/portfolio/IMG_4738.jpeg',
+                './assets/images/portfolio/IMG_4934.jpeg',
+                './assets/images/portfolio/IMG_4952.jpeg',
+                './assets/images/portfolio/IMG_5006_jpg.jpeg',
+                './assets/images/portfolio/IMG_5451.jpeg',
+                './assets/images/portfolio/IMG_6251.jpeg',
+                './assets/images/portfolio/IMG_6651.png'
             ];
             
             assets.push(...portfolioImages);
@@ -112,16 +110,8 @@
         },
 
         updateProgress() {
+            // Minimal approach - just log progress
             const percentage = Math.round((this.loadedAssets / this.totalAssets) * 100);
-            
-            if (this.progressBar) {
-                this.progressBar.style.width = `${percentage}%`;
-            }
-            
-            if (this.progressText) {
-                this.progressText.textContent = `${percentage}%`;
-            }
-
             console.log(`Loading progress: ${this.loadedAssets}/${this.totalAssets} (${percentage}%)`);
         },
 
@@ -132,32 +122,18 @@
             if (this.safetyTimeout) {
                 clearTimeout(this.safetyTimeout);
             }
-            
-            // Ensure 100% is shown
-            if (this.progressBar) {
-                this.progressBar.style.width = '100%';
-            }
-            if (this.progressText) {
-                this.progressText.textContent = '100%';
-            }
 
-            // Wait a moment then hide preloader
+            // Minimal delay then hide preloader
             setTimeout(() => {
                 this.hidePreloader();
-            }, 500);
+            }, 800);
         },
 
         hidePreloader() {
-            console.log('Starting splash effect...');
+            console.log('Hiding minimal preloader...');
             
             if (this.preloader) {
-                // Add splash effect class
-                this.preloader.classList.add('splash-complete');
-                
-                // Start splash transition
-                setTimeout(() => {
-                    this.preloader.classList.add('hidden');
-                }, 300);
+                this.preloader.classList.add('hidden');
                 
                 // Remove preloader and show content
                 setTimeout(() => {
@@ -168,13 +144,11 @@
                     // Initialize main application
                     initializeApp();
                     
-                    // Remove preloader from DOM after all animations
-                    setTimeout(() => {
-                        if (this.preloader && this.preloader.parentNode) {
-                            this.preloader.parentNode.removeChild(this.preloader);
-                        }
-                    }, 400);
-                }, 600);
+                    // Remove preloader from DOM
+                    if (this.preloader && this.preloader.parentNode) {
+                        this.preloader.parentNode.removeChild(this.preloader);
+                    }
+                }, 1000);
             } else {
                 // Fallback if no preloader element
                 document.documentElement.classList.remove('loading');
@@ -579,10 +553,32 @@
     // ===== NAVIGATION MODULE =====
     const Navigation = {
         init() {
+            console.log('🍔 Initializing Navigation...');
+            
             this.nav = document.querySelector('.nav');
-            this.navToggle = document.getElementById('nav-toggle');
-            this.navMenu = document.getElementById('nav-menu');
+            this.navToggle = document.getElementById('nav-toggle') || document.querySelector('.nav__toggle');
+            this.navMenu = document.getElementById('nav-menu') || document.querySelector('.nav__menu');
             this.navLinks = document.querySelectorAll('.nav__link');
+            
+            console.log('Nav elements found:', {
+                nav: !!this.nav,
+                navToggle: !!this.navToggle, 
+                navMenu: !!this.navMenu,
+                navLinks: this.navLinks.length
+            });
+            
+            if (!this.navToggle) {
+                console.error('❌ nav-toggle element not found! Looking for alternatives...');
+                // Try to find it with a more general selector
+                const allButtons = document.querySelectorAll('button');
+                console.log('All buttons found:', allButtons.length);
+                allButtons.forEach((btn, i) => {
+                    console.log(`Button ${i}:`, btn.className, btn.id);
+                });
+            }
+            if (!this.navMenu) {
+                console.error('❌ nav-menu element not found!');
+            }
             
             this.bindEvents();
             this.setupScrollDetection();
@@ -591,12 +587,63 @@
         bindEvents() {
             // Mobile menu toggle
             if (this.navToggle && this.navMenu) {
-                this.navToggle.addEventListener('click', () => this.toggleMobileMenu());
+                console.log('✅ Binding hamburger menu events');
+                
+                // Primary click handler
+                this.navToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🍔 Hamburger clicked!');
+                    this.toggleMobileMenu();
+                });
+                
+                // Touch handler for mobile
+                this.navToggle.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('👆 Hamburger touched!');
+                    this.toggleMobileMenu();
+                }, { passive: false });
+                
+                console.log('🍔 Event listeners attached successfully');
+            } else {
+                console.error('❌ Cannot bind events - missing elements:', {
+                    navToggle: !!this.navToggle,
+                    navMenu: !!this.navMenu
+                });
             }
+
+            // Fallback event delegation for hamburger menu
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('#nav-toggle') || e.target.closest('.nav__toggle')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('🍔 Hamburger clicked via delegation!');
+                    this.toggleMobileMenu();
+                }
+            });
+
+            // Additional fallback - find and bind directly
+            const hamburgerFallback = () => {
+                const toggle = document.querySelector('#nav-toggle') || document.querySelector('.nav__toggle');
+                if (toggle && !toggle.hasAttribute('data-bound')) {
+                    console.log('🔄 Setting up fallback hamburger handler');
+                    toggle.setAttribute('data-bound', 'true');
+                    toggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        console.log('🍔 Fallback handler triggered!');
+                        this.toggleMobileMenu();
+                    });
+                }
+            };
+            
+            // Try immediately and after a short delay
+            hamburgerFallback();
+            setTimeout(hamburgerFallback, 500);
 
             // Close mobile menu when clicking outside
             document.addEventListener('click', (e) => {
-                if (!this.nav.contains(e.target) && this.navMenu.classList.contains('active')) {
+                if (!this.nav.contains(e.target) && this.navMenu && this.navMenu.classList.contains('active')) {
                     this.closeMobileMenu();
                 }
             });
@@ -616,14 +663,41 @@
         },
 
         toggleMobileMenu() {
+            console.log('🍔 toggleMobileMenu called');
+            
+            // Find elements if not already found
+            if (!this.navToggle) {
+                this.navToggle = document.getElementById('nav-toggle') || document.querySelector('.nav__toggle');
+            }
+            if (!this.navMenu) {
+                this.navMenu = document.getElementById('nav-menu') || document.querySelector('.nav__menu');
+            }
+            
+            if (!this.navToggle || !this.navMenu) {
+                console.error('❌ Navigation elements not found:', {
+                    navToggle: !!this.navToggle,
+                    navMenu: !!this.navMenu
+                });
+                return;
+            }
+            
             const isOpen = this.navToggle.getAttribute('aria-expanded') === 'true';
+            console.log('📱 Menu is currently:', isOpen ? 'open' : 'closed');
             
             this.navToggle.setAttribute('aria-expanded', !isOpen);
-            this.navMenu.classList.toggle('active');
             
-            // Trap focus in mobile menu
-            if (!isOpen) {
-                this.navLinks[0]?.focus();
+            if (isOpen) {
+                this.navMenu.classList.remove('active');
+                console.log('🔴 Closing menu');
+                document.body.style.overflow = '';
+            } else {
+                this.navMenu.classList.add('active');
+                console.log('🟢 Opening menu');
+                document.body.style.overflow = 'hidden'; // Prevent scroll when menu is open
+                // Trap focus in mobile menu
+                setTimeout(() => {
+                    this.navLinks[0]?.focus();
+                }, 100);
             }
         },
 
@@ -662,9 +736,10 @@
 
                 // Update active navigation link
                 this.updateActiveNavLink();
-            }, 100);
+            }, 16); // ~60fps for smoother scrolling
 
-            window.addEventListener('scroll', scrollHandler);
+            // Use passive listener for better performance
+            window.addEventListener('scroll', scrollHandler, { passive: true });
         },
 
         updateActiveNavLink() {
@@ -828,6 +903,8 @@
                     class="portfolio__image"
                     loading="lazy"
                     data-full-image="${item.image}"
+                    onerror="console.error('Failed to load image:', this.src); this.parentElement.style.backgroundColor='#333';"
+                    onload="console.log('Image loaded successfully:', this.src); this.parentElement.classList.remove('loading');"
                 >
                 <div class="portfolio__overlay">
                     <div class="portfolio__info">
@@ -836,6 +913,12 @@
                     </div>
                 </div>
             `;
+            
+            // Add a small delay to ensure the image loads
+            const img = portfolioItem.querySelector('.portfolio__image');
+            if (img.complete) {
+                portfolioItem.classList.remove('loading');
+            }
 
             return portfolioItem;
         },
@@ -1315,9 +1398,10 @@
                 } else {
                     this.backToTopBtn.classList.remove('visible');
                 }
-            }, 100);
+            }, 16); // ~60fps for smoother scrolling
 
-            window.addEventListener('scroll', scrollHandler);
+            // Use passive listener for better performance
+            window.addEventListener('scroll', scrollHandler, { passive: true });
 
             // Click handler
             this.backToTopBtn.addEventListener('click', () => {
@@ -1383,6 +1467,27 @@
     const Performance = {
         init() {
             this.optimizeImages();
+            this.setupScrollOptimization();
+        },
+
+        setupScrollOptimization() {
+            let isScrolling = false;
+            let scrollTimer = null;
+
+            const handleScrollStart = () => {
+                if (!isScrolling) {
+                    document.body.classList.add('scrolling');
+                    isScrolling = true;
+                }
+                
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(() => {
+                    document.body.classList.remove('scrolling');
+                    isScrolling = false;
+                }, 150);
+            };
+
+            window.addEventListener('scroll', handleScrollStart, { passive: true });
         },
 
         optimizeImages() {

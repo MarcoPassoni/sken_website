@@ -55,10 +55,10 @@
     <link rel="preload" href="./assets/css/main.css" as="style">
     <link rel="preload" href="./assets/js/main.js" as="script">
     <link rel="preload" href="./assets/images/artist-photo.jpg" as="image">
-    <link rel="preload" href="./assets/images/portfolio/braccio_1.jpg" as="image">
-    <link rel="preload" href="./assets/images/portfolio/braccio_2.jpg" as="image">
-    <link rel="preload" href="./assets/images/portfolio/gamba_1.jpg" as="image">
-    <link rel="preload" href="./assets/images/portfolio/torso_1.jpg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/IMG_0092.jpeg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/IMG_3407.jpeg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/IMG_3605.jpeg" as="image">
+    <link rel="preload" href="./assets/images/portfolio/IMG_3634.jpeg" as="image">
     
     <!-- Styles -->
     <link rel="stylesheet" href="./assets/css/main.css">
@@ -67,13 +67,12 @@
     <!-- Preloader -->
     <div class="preloader" id="preloader">
         <div class="preloader__content">
-            <h1 class="preloader__logo">@sken.blk</h1>
-            <div class="preloader__spinner"></div>
-            <p class="preloader__text">Caricamento portfolio...</p>
-            <div class="preloader__progress">
-                <div class="preloader__progress-bar" id="progress-bar"></div>
+            <div class="preloader__logo">@sken.blk</div>
+            <div class="preloader__dots">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
-            <div class="preloader__percentage" id="progress-text">0%</div>
         </div>
     </div>
 
@@ -107,9 +106,6 @@
                 <li class="nav__item" role="none">
                     <a href="#faq" class="nav__link" role="menuitem">FAQ</a>
                 </li>
-                <li class="nav__item" role="none">
-                    <a href="#apprentice" class="nav__link" role="menuitem">Lavora con noi</a>
-                </li>
             </ul>
             
             <button class="theme-toggle" id="theme-toggle" aria-label="Cambia tema">
@@ -122,7 +118,7 @@
         <!-- Hero Section -->
         <section class="hero" id="home">
             <div class="hero__background">
-                <video class="hero__video" autoplay muted loop playsinline poster="./assets/images/artist-photo.jpg" aria-hidden="true">
+                <video class="hero__video" autoplay muted loop playsinline poster="./assets/images/favicon.png" aria-hidden="true">
                     <source src="./assets/images/videos/kling_20250820_Image_to_Video__5915_0.mp4" type="video/mp4">
                     <source src="./assets/images/videos/3b47eaae-5fba-4cac-96b2-6926e8ec99b5.mp4" type="video/mp4">
                 </video>
@@ -210,7 +206,7 @@
                 
                 <div class="video-showcase__grid">
                     <div class="video-showcase__item">
-                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_8330.png">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/favicon.png">
                             <source src="./assets/images/videos/kling_20250820_Image_to_Video__5940_0.mp4" type="video/mp4">
                             Il tuo browser non supporta i video HTML5.
                         </video>
@@ -221,7 +217,7 @@
                     </div>
                     
                     <div class="video-showcase__item">
-                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_6653.png">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/favicon.png">
                             <source src="./assets/images/videos/kling_20250820_Image_to_Video__5971_0.mp4" type="video/mp4">
                             Il tuo browser non supporta i video HTML5.
                         </video>
@@ -232,7 +228,7 @@
                     </div>
                     
                     <div class="video-showcase__item">
-                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/portfolio/IMG_8335.png">
+                        <video class="video-showcase__video" controls preload="metadata" poster="./assets/images/favicon.png">
                             <source src="./assets/images/videos/kling_20250820_Image_to_Video__6009_0.mp4" type="video/mp4">
                             Il tuo browser non supporta i video HTML5.
                         </video>
@@ -413,86 +409,126 @@
 
         <!-- FAQ Section -->
         <section class="faq" id="faq">
-            <div class="container">
-                <header class="section__header">
-                    <h2 class="section__title">FAQ & Aftercare</h2>
-                    <p class="section__subtitle">Domande frequenti e cura del tatuaggio</p>
-                </header>
-                
-                <div class="faq__grid">
-                    <div class="faq__list">
-                        <div class="faq__item">
-                            <button class="faq__question" aria-expanded="false">
-                                <span>Quanto costa un tatuaggio?</span>
-                                <span class="faq__icon"></span>
-                            </button>
-                            <div class="faq__answer">
-                                <p>I prezzi variano in base a dimensioni, complessità e tempo di realizzazione. Contattami per un preventivo personalizzato basato sulla tua idea.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="faq__item">
-                            <button class="faq__question" aria-expanded="false">
-                                <span>Quanto tempo richiede la guarigione?</span>
-                                <span class="faq__icon"></span>
-                            </button>
-                            <div class="faq__answer">
-                                <p>La guarigione superficiale richiede circa 2-3 settimane, mentre quella completa può richiedere fino a 2-3 mesi. Segui sempre le istruzioni per l'aftercare.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="faq__item">
-                            <button class="faq__question" aria-expanded="false">
-                                <span>Posso vedere il design prima della sessione?</span>
-                                <span class="faq__icon"></span>
-                            </button>
-                            <div class="faq__answer">
-                                <p>Sì, preparo sempre un design personalizzato che ti mostrerò prima di iniziare. Possiamo apportare modifiche fino a quando non sei completamente soddisfatto.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="faq__item">
-                            <button class="faq__question" aria-expanded="false">
-                                <span>Accetti walk-ins?</span>
-                                <span class="faq__icon"></span>
-                            </button>
-                            <div class="faq__answer">
-                                <p>Sì! Accetto clienti senza appuntamento negli orari di apertura, compatibilmente con la disponibilità. Per progetti complessi consiglio di prenotare.</p>
-                            </div>
-                        </div>
+    <div class="container">
+        <header class="section__header">
+            <h2 class="section__title">FAQ & Aftercare</h2>
+            <p class="section__subtitle">Domande frequenti e cura del tatuaggio</p>
+        </header>
+        
+        <div class="faq__grid">
+            <div class="faq__list">
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Quanto costa un tatuaggio?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>I prezzi variano in base a dimensioni, complessità e tempo di realizzazione. Contattami per un preventivo personalizzato basato sulla tua idea.</p>
                     </div>
-                    
-                    <div class="aftercare">
-                        <h3 class="aftercare__title">Istruzioni Aftercare</h3>
-                        <div class="aftercare__content">
-                            <h4>Primi giorni (1-3)</h4>
-                            <ul class="aftercare__list">
-                                <li>Rimuovi il bendaggio dopo 2-4 ore</li>
-                                <li>Lava delicatamente con sapone neutro</li>
-                                <li>Asciuga tamponando, non strofinare</li>
-                                <li>Applica una crema specifica per tatuaggi</li>
-                            </ul>
-                            
-                            <h4>Settimane successive (1-3)</h4>
-                            <ul class="aftercare__list">
-                                <li>Continua a idratare regolarmente</li>
-                                <li>Evita sole diretto e immersioni</li>
-                                <li>Non grattare o rimuovere le crosticine</li>
-                                <li>Indossa vestiti comodi e traspiranti</li>
-                            </ul>
-                            
-                            <h4>Da evitare</h4>
-                            <ul class="aftercare__list">
-                                <li>Piscine, mare e saune per 2-3 settimane</li>
-                                <li>Esposizione diretta al sole</li>
-                                <li>Attività fisica intensa per i primi giorni</li>
-                                <li>Alcol e droghe nelle 24h precedenti/successive</li>
-                            </ul>
-                        </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Quanto tempo richiede la guarigione?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>La guarigione superficiale richiede circa 2-3 settimane, mentre quella completa può richiedere fino a 2-3 mesi. Segui sempre le istruzioni per l'aftercare.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Posso vedere il design prima della sessione?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>Sì, preparo sempre un design personalizzato che ti mostrerò prima di iniziare. Possiamo apportare modifiche fino a quando non sei completamente soddisfatto.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Accetti walk-ins?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>Sì! Accetto clienti senza appuntamento negli orari di apertura, compatibilmente con la disponibilità. Per progetti complessi consiglio comunque di prenotare.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Che tipo di inchiostri utilizzi?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>Utilizzo solo inchiostri certificati e conformi alle normative europee, privi di sostanze nocive. Sono sicuri per la pelle e garantiscono colori duraturi nel tempo.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Posso tatuarmi se ho appena preso il sole?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>È meglio evitare di tatuarsi su pelle abbronzata o irritata. Il sole rende la pelle più sensibile e può compromettere la qualità del tatuaggio e la guarigione.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Fai ritocchi o coperture di vecchi tatuaggi?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>Sì, offro sia ritocchi che cover-up. Valuterò il tatuaggio esistente e troveremo insieme la soluzione migliore per rinnovarlo o coprirlo in modo armonioso.</p>
+                    </div>
+                </div>
+
+                <div class="faq__item">
+                    <button class="faq__question" aria-expanded="false">
+                        <span>Posso tatuarmi se è la mia prima volta?</span>
+                        <span class="faq__icon"></span>
+                    </button>
+                    <div class="faq__answer">
+                        <p>Assolutamente sì! Ti guiderò passo dopo passo, spiegandoti tutto ciò che serve sapere prima, durante e dopo la seduta, così da vivere un’esperienza serena e sicura.</p>
                     </div>
                 </div>
             </div>
-        </section>
+            
+            <div class="aftercare">
+                <h3 class="aftercare__title">Istruzioni Aftercare</h3>
+                <div class="aftercare__content">
+                    <h4>Primi giorni (1-3)</h4>
+                    <ul class="aftercare__list">
+                        <li>Rimuovi il bendaggio dopo 2-4 ore</li>
+                        <li>Lava delicatamente con sapone neutro</li>
+                        <li>Asciuga tamponando, non strofinare</li>
+                        <li>Applica una crema specifica per tatuaggi</li>
+                    </ul>
+                    
+                    <h4>Settimane successive (1-3)</h4>
+                    <ul class="aftercare__list">
+                        <li>Continua a idratare regolarmente</li>
+                        <li>Evita sole diretto e immersioni</li>
+                        <li>Non grattare o rimuovere le crosticine</li>
+                        <li>Indossa vestiti comodi e traspiranti</li>
+                    </ul>
+                    
+                    <h4>Da evitare</h4>
+                    <ul class="aftercare__list">
+                        <li>Piscine, mare e saune per 2-3 settimane</li>
+                        <li>Esposizione diretta al sole</li>
+                        <li>Attività fisica intensa per i primi giorni</li>
+                        <li>Alcol e droghe nelle 24h precedenti/successive</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
     </main>
 
     <!-- Footer -->
