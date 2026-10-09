@@ -58,14 +58,13 @@
             root.classList.add('js');
             try {
                 if (localStorage.getItem('theme') === 'light') root.classList.replace('dark', 'light');
-                if (sessionStorage.getItem('intro-seen')) root.classList.add('no-intro');
             } catch (e) {}
 
             // Failsafe: if main.js never starts (blocked, offline, error),
             // drop the flag so nothing stays hidden waiting for an animation.
             setTimeout(function () {
                 if (!root.classList.contains('is-ready')) root.classList.remove('js');
-            }, 4000);
+            }, 9000);
         })();
     </script>
 
@@ -138,7 +137,7 @@
         <section class="hero" id="home">
             <div class="hero__inner container">
                 <div class="hero__media">
-                    <video class="hero__video" muted loop playsinline preload="none" poster="./assets/images/videos/posters/hero.webp" aria-hidden="true" tabindex="-1">
+                    <video class="hero__video" muted playsinline preload="none" poster="./assets/images/videos/posters/hero.webp" aria-hidden="true" tabindex="-1">
                         <source src="./assets/images/videos/kling_20250820_Image_to_Video__5915_0.mp4" type="video/mp4">
                     </video>
                 </div>
@@ -231,13 +230,10 @@
                 <div class="video-showcase__grid">
                     <div class="video-showcase__item" data-reveal>
                         <div class="video-showcase__media">
-                            <video class="video-showcase__video" controls playsinline preload="none" poster="./assets/images/videos/posters/process-dark.webp">
+                            <video class="video-showcase__video" muted playsinline preload="none" poster="./assets/images/videos/posters/process-dark.webp">
                                 <source src="./assets/images/videos/kling_20250820_Image_to_Video__5940_0.mp4" type="video/mp4">
                                 Il tuo browser non supporta i video HTML5.
                             </video>
-                            <button class="video-showcase__play" type="button" aria-label="Riproduci video: Tecnica Dark Tattoo" hidden>
-                                <span class="video-showcase__play-icon"></span>
-                            </button>
                         </div>
                         <div class="video-showcase__info">
                             <h3>Tecnica Dark Tattoo</h3>
@@ -247,13 +243,10 @@
                     
                     <div class="video-showcase__item" data-reveal>
                         <div class="video-showcase__media">
-                            <video class="video-showcase__video" controls playsinline preload="none" poster="./assets/images/videos/posters/process-blackwork.webp">
+                            <video class="video-showcase__video" muted playsinline preload="none" poster="./assets/images/videos/posters/process-blackwork.webp">
                                 <source src="./assets/images/videos/kling_20250820_Image_to_Video__5971_0.mp4" type="video/mp4">
                                 Il tuo browser non supporta i video HTML5.
                             </video>
-                            <button class="video-showcase__play" type="button" aria-label="Riproduci video: Blackwork Evolution" hidden>
-                                <span class="video-showcase__play-icon"></span>
-                            </button>
                         </div>
                         <div class="video-showcase__info">
                             <h3>Blackwork Evolution</h3>
@@ -263,13 +256,10 @@
                     
                     <div class="video-showcase__item" data-reveal>
                         <div class="video-showcase__media">
-                            <video class="video-showcase__video" controls playsinline preload="none" poster="./assets/images/videos/posters/process-fluid.webp">
+                            <video class="video-showcase__video" muted playsinline preload="none" poster="./assets/images/videos/posters/process-fluid.webp">
                                 <source src="./assets/images/videos/kling_20250820_Image_to_Video__6009_0.mp4" type="video/mp4">
                                 Il tuo browser non supporta i video HTML5.
                             </video>
-                            <button class="video-showcase__play" type="button" aria-label="Riproduci video: Fluid Art Process" hidden>
-                                <span class="video-showcase__play-icon"></span>
-                            </button>
                         </div>
                         <div class="video-showcase__info">
                             <h3>Fluid Art Process</h3>
@@ -328,63 +318,145 @@
                         </div>
                         
                         <form class="booking__form" id="booking-form" novalidate>
-                            <div class="form__group form__group--half">
-                                <label for="name" class="form__label">Nome *</label>
-                                <input type="text" id="name" name="name" class="form__input" required autocomplete="name" aria-describedby="name-error">
-                                <span class="form__error" id="name-error"></span>
+                            <div class="steps" aria-hidden="true">
+                                <span class="steps__item is-current"></span>
+                                <span class="steps__item"></span>
+                                <span class="steps__item"></span>
+                                <span class="steps__item"></span>
+                                <span class="steps__count">1 / 4</span>
                             </div>
-                            
-                            <div class="form__group form__group--half">
-                                <label for="email" class="form__label">Email *</label>
-                                <input type="email" id="email" name="email" class="form__input" required autocomplete="email" inputmode="email" aria-describedby="email-error">
-                                <span class="form__error" id="email-error"></span>
-                            </div>
-                            
-                            <div class="form__group form__group--third">
-                                <label for="phone" class="form__label">Telefono</label>
-                                <input type="tel" id="phone" name="phone" class="form__input" autocomplete="tel" inputmode="tel">
-                            </div>
-                            
-                            <div class="form__group form__group--third">
-                                <label for="tattoo-type" class="form__label">Tipo di tatuaggio</label>
-                                <select id="tattoo-type" name="tattoo-type" class="form__select">
-                                    <option value="">Seleziona uno stile</option>
-                                    <option value="dark">Dark Tattoo</option>
-                                    <option value="fluid">Fluid Tattoo</option>
-                                    <option value="blackwork">Blackwork</option>
-                                    <option value="custom">Personalizzato</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form__group form__group--third">
-                                <label for="body-area" class="form__label">Area del corpo</label>
-                                <select id="body-area" name="body-area" class="form__select">
-                                    <option value="">Seleziona un'area</option>
-                                    <option value="arm">Braccio</option>
-                                    <option value="back">Schiena</option>
-                                    <option value="chest">Petto</option>
-                                    <option value="leg">Gamba</option>
-                                    <option value="other">Altro</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form__group">
-                                <label for="message" class="form__label">Descrizione del progetto *</label>
-                                <textarea id="message" name="message" class="form__textarea" rows="5" required aria-describedby="message-error" placeholder="Descrivi la tua idea, dimensioni approssimative, riferimenti..."></textarea>
-                                <span class="form__error" id="message-error"></span>
-                            </div>
-                            
+
+                            <fieldset class="form__step">
+                                <legend class="form__legend" tabindex="-1">La tua idea</legend>
+
+                                <div class="form__group">
+                                    <label for="tattoo-type" class="form__label">Tipo di tatuaggio</label>
+                                    <select id="tattoo-type" name="tattoo-type" class="form__select">
+                                        <option value="">Seleziona uno stile</option>
+                                        <option value="dark">Dark Tattoo</option>
+                                        <option value="fluid">Fluid Tattoo</option>
+                                        <option value="blackwork">Blackwork</option>
+                                        <option value="custom">Personalizzato</option>
+                                    </select>
+                                </div>
+
+                                <div class="form__group">
+                                    <label for="message" class="form__label">Descrizione del progetto *</label>
+                                    <textarea id="message" name="message" class="form__textarea" rows="5" required aria-describedby="message-error" placeholder="Descrivi la tua idea, dimensioni approssimative, riferimenti..."></textarea>
+                                    <span class="form__error" id="message-error"></span>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="form__step">
+                                <legend class="form__legend" tabindex="-1">Zona e dimensioni</legend>
+
+                                <div class="form__group">
+                                    <label for="body-area" class="form__label">Area del corpo</label>
+                                    <select id="body-area" name="body-area" class="form__select">
+                                        <option value="">Seleziona un'area</option>
+                                        <option value="arm">Braccio</option>
+                                        <option value="back">Schiena</option>
+                                        <option value="chest">Petto</option>
+                                        <option value="leg">Gamba</option>
+                                        <option value="other">Altro</option>
+                                    </select>
+                                </div>
+
+                                <div class="form__group" role="group" aria-labelledby="size-label">
+                                    <span class="form__label" id="size-label">Dimensioni indicative</span>
+                                    <div class="choices">
+                                        <label class="choice"><input type="radio" name="size" value="Piccolo, fino a 5 cm"><span>Piccolo <small>fino a 5 cm</small></span></label>
+                                        <label class="choice"><input type="radio" name="size" value="Medio, 5-15 cm"><span>Medio <small>5-15 cm</small></span></label>
+                                        <label class="choice"><input type="radio" name="size" value="Grande, 15-30 cm"><span>Grande <small>15-30 cm</small></span></label>
+                                        <label class="choice"><input type="radio" name="size" value="Molto grande, oltre 30 cm"><span>Molto grande <small>oltre 30 cm</small></span></label>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="form__step">
+                                <legend class="form__legend" tabindex="-1">Riferimenti e budget</legend>
+
+                                <div class="form__group">
+                                    <span class="form__label" id="references-label">Foto di riferimento</span>
+                                    <label class="upload" for="references">
+                                        <input type="file" id="references" name="references" class="upload__input" accept="image/*" multiple aria-labelledby="references-label" aria-describedby="references-hint references-error">
+                                        <span class="upload__title">Trascina qui le immagini o tocca per sceglierle</span>
+                                        <span class="upload__hint" id="references-hint">Fino a 5 immagini, massimo 8 MB l'una</span>
+                                    </label>
+                                    <ul class="upload__list" hidden></ul>
+                                    <span class="form__error" id="references-error" aria-live="polite"></span>
+                                </div>
+
+                                <div class="form__group form__group--half">
+                                    <label for="budget" class="form__label">Budget indicativo</label>
+                                    <div class="form__affix">
+                                        <input type="text" id="budget" name="budget" class="form__input" inputmode="numeric" autocomplete="off" aria-describedby="budget-hint">
+                                        <span class="form__affix-unit" aria-hidden="true">€</span>
+                                    </div>
+                                    <span class="form__hint" id="budget-hint">Facoltativo, in euro</span>
+                                </div>
+                            </fieldset>
+
+                            <fieldset class="form__step">
+                                <legend class="form__legend" tabindex="-1">Data e contatti</legend>
+
+                                <div class="form__group" role="group" aria-labelledby="date-label">
+                                    <span class="form__label" id="date-label">Data preferita</span>
+                                    <div class="calendar" id="booking-calendar"></div>
+                                    <input type="hidden" name="preferred-date">
+                                    <span class="form__hint">È una preferenza: giorno e ora si confermano insieme.</span>
+                                </div>
+
+                                <div class="form__group" role="group" aria-labelledby="time-label">
+                                    <span class="form__label" id="time-label">Fascia oraria</span>
+                                    <div class="choices">
+                                        <label class="choice"><input type="radio" name="preferred-time" value="Mattina"><span>Mattina</span></label>
+                                        <label class="choice"><input type="radio" name="preferred-time" value="Pomeriggio"><span>Pomeriggio</span></label>
+                                        <label class="choice"><input type="radio" name="preferred-time" value="Indifferente"><span>Indifferente</span></label>
+                                    </div>
+                                </div>
+
+                                <div class="form__group form__group--half">
+                                    <label for="name" class="form__label">Nome *</label>
+                                    <input type="text" id="name" name="name" class="form__input" required autocomplete="name" aria-describedby="name-error">
+                                    <span class="form__error" id="name-error"></span>
+                                </div>
+
+                                <div class="form__group form__group--half">
+                                    <label for="email" class="form__label">Email *</label>
+                                    <input type="email" id="email" name="email" class="form__input" required autocomplete="email" inputmode="email" aria-describedby="email-error">
+                                    <span class="form__error" id="email-error"></span>
+                                </div>
+
+                                <div class="form__group form__group--half">
+                                    <label for="phone" class="form__label">Telefono</label>
+                                    <input type="tel" id="phone" name="phone" class="form__input" autocomplete="tel" inputmode="tel">
+                                </div>
+                            </fieldset>
+
                             <!-- Honeypot field for spam protection -->
                             <div class="form__honeypot">
                                 <input type="text" name="website" tabindex="-1" aria-hidden="true" autocomplete="off">
                             </div>
-                            
-                            <button type="submit" class="btn btn--primary btn--full">
-                                <span class="btn__text">Invia richiesta</span>
-                                <span class="btn__loading">Invio in corso...</span>
-                            </button>
+
+                            <div class="form__nav">
+                                <button type="button" class="btn btn--secondary" data-step-prev hidden>Indietro</button>
+                                <button type="button" class="btn btn--primary" data-step-next hidden>Avanti</button>
+                                <button type="submit" class="btn btn--primary">
+                                    <span class="btn__text">Invia richiesta</span>
+                                    <span class="btn__loading">Invio in corso...</span>
+                                </button>
+                            </div>
                         </form>
-                    </div>
+
+                        <div class="booking__done" id="booking-done" tabindex="-1" hidden>
+                            <h3 class="booking__done-title"></h3>
+                            <p class="booking__done-text"></p>
+                            <div class="booking__done-actions">
+                                <a class="btn btn--primary booking__done-link" href="#" target="_blank" rel="noopener" hidden>Apri WhatsApp</a>
+                                <button type="button" class="btn btn--secondary" data-booking-restart>Nuova richiesta</button>
+                            </div>
+                        </div>                    </div>
                     
                     <div class="booking__info" data-reveal>
                         <div class="contact__card">

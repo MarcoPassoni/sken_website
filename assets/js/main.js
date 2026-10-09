@@ -7,17 +7,37 @@
 
     // ===== CONSTANTS & CONFIGURATION =====
     const CONFIG = {
-        INTRO_DURATION: 900,
+        INTRO_GRACE: 150,          // assets ready within this time = cached: no curtain
+        INTRO_MIN: 700,            // once shown, stay long enough not to blink
+        INTRO_GALLERY_WAIT: 4500,  // how long the first portfolio rows may hold it
+        INTRO_MAX: 8000,           // hard limit, whatever the connection
+        IMAGE_RETRY_DELAY: 1500,
         LIGHTBOX_FADE: 250,
-        PORTFOLIO_ITEMS_PER_LOAD: 12, // divisible by 2, 3 and 4 columns: no orphan tiles
+        // Works shown per step: two full rows of 4 on wide screens, full rows
+        // of 2 or 3 below (6 divides by both), so there is never an orphan tile
+        PORTFOLIO_ITEMS_PER_LOAD: { wide: 8, narrow: 6 },
+        VIDEO_LOOP_FADE: 0.7,   // seconds before the end at which a video fades to its poster
+        TITLE_HOLD: 2000,       // ms the hero title rests, readable, between two stirs
         PORTFOLIO_IMAGE_PATH: './assets/images/portfolio/web/',
         PORTFOLIO_SIZES: '(min-width: 1100px) 25vw, (min-width: 600px) 33vw, 50vw',
-        THEME_COLORS: { dark: '#0b0b0c', light: '#f4f4f2' }
+        THEME_COLORS: { dark: '#0b0b0c', light: '#f4f4f2' },
+
+        // Booking requests.
+        // ENDPOINT: URL of a form service that accepts a multipart POST (with
+        // the pictures). Left empty, the request opens in WhatsApp instead.
+        BOOKING: {
+            ENDPOINT: '',
+            WHATSAPP: '393272127922',
+            MAX_FILES: 5,
+            MAX_FILE_MB: 8,
+            MONTHS_AHEAD: 6   // how far ahead a preferred date can be picked
+        }
     };
 
     const root = document.documentElement;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     const desktopNav = window.matchMedia('(min-width: 900px)');
+    const wideGrid = window.matchMedia('(min-width: 1100px)'); // 4-column portfolio
 
     // ===== UTILITY FUNCTIONS =====
 
@@ -145,36 +165,130 @@
     ];
 
     // ===== PRELOADER =====
-    // A short brand curtain. The page loads behind it: nothing waits on it.
+    // A real loading curtain, not a timed intro. It appears only when the
+    // first pictures are not available yet (first visit, slow connection),
+    // its bar follows the actual downloads, and it lifts when they are in.
+    // With everything already cached it never shows.
     const Preloader = {
         init(onDone) {
             this.preloader = document.getElementById('preloader');
             this.onDone = onDone;
+            this.finished = false;
 
-            const skip = !this.preloader
-                || root.classList.contains('no-intro')
-                || reducedMotion.matches;
-
-            if (skip) {
+            if (!this.preloader || reducedMotion.matches) {
                 detach(this.preloader);
                 onDone();
                 return;
             }
 
-            root.classList.add('is-locked');
-            setTimeout(() => this.hide(), CONFIG.INTRO_DURATION);
+            this.bar = this.preloader.querySelector('.preloader__bar');
+
+            const startedAt = performance.now();
+            const elapsed = () => performance.now() - startedAt;
+            const wait = (ms) => new Promise(resolve => setTimeout(resolve, Math.max(0, ms)));
+
+            // Needed for the first screen / for the first rows of the portfolio
+            const critical = this.getCriticalAssets();
+            const gallery = this.getGalleryAssets();
+            const assets = critical.concat(gallery);
+
+            let loaded = 0;
+            assets.forEach(asset => asset.then(() => {
+                loaded++;
+                this.setProgress(loaded / assets.length);
+            }));
+
+            const everything = Promise.all(assets);
+
+            Promise.race([
+                everything.then(() => true),
+                wait(CONFIG.INTRO_GRACE).then(() => false)
+            ]).then(alreadyCached => {
+                if (alreadyCached) {
+                    this.finish(true);
+                    return;
+                }
+
+                root.classList.add('is-locked');
+                this.preloader.classList.add('is-loading');
+
+                // First screen is mandatory; the gallery gets a fair chance,
+                // but a slow connection never holds the page hostage.
+                const ready = Promise.all(critical).then(() => Promise.race([
+                    Promise.all(gallery),
+                    wait(CONFIG.INTRO_GALLERY_WAIT - elapsed())
+                ]));
+
+                Promise.race([ready, wait(CONFIG.INTRO_MAX)])
+                    .then(() => wait(CONFIG.INTRO_MIN - elapsed())) // no blink on fast loads
+                    .then(() => this.finish(false));
+            });
         },
 
-        hide() {
-            this.preloader.classList.add('is-done');
-            root.classList.remove('is-locked');
+        // Resolves when the image has loaded (or failed: a broken file must
+        // never block the page).
+        whenImage(image) {
+            if (image.complete && image.naturalWidth > 0) return Promise.resolve();
 
-            try {
-                sessionStorage.setItem('intro-seen', '1');
-            } catch (e) { /* storage unavailable: the intro simply plays again */ }
+            return new Promise(resolve => {
+                image.addEventListener('load', resolve, { once: true });
+                image.addEventListener('error', resolve, { once: true });
+            });
+        },
 
-            this.onDone();
-            setTimeout(() => detach(this.preloader), 600);
+        getCriticalAssets() {
+            const assets = [];
+
+            // Ask for the two faces of the first screen explicitly: `fonts.ready`
+            // alone can resolve before the browser has even requested them.
+            if (document.fonts && document.fonts.load) {
+                ['800 1em "Sofia Sans Extra Condensed"', '400 1em "Geist"'].forEach(font => {
+                    assets.push(document.fonts.load(font).catch(() => {}));
+                });
+            }
+
+            const heroVideo = document.querySelector('.hero__video');
+            if (heroVideo && heroVideo.poster) {
+                const poster = new Image();
+                poster.src = heroVideo.poster;
+                assets.push(this.whenImage(poster));
+            }
+
+            const logo = document.querySelector('.nav__logo img');
+            if (logo) assets.push(this.whenImage(logo));
+
+            return assets;
+        },
+
+        getGalleryAssets() {
+            return Array.from(document.querySelectorAll('.portfolio__image[loading="eager"]'))
+                .map(image => this.whenImage(image));
+        },
+
+        setProgress(value, force) {
+            // Pictures that arrive after the curtain has lifted must not move the bar back
+            if (this.finished && !force) return;
+            this.bar?.style.setProperty('--progress', value.toFixed(3));
+        },
+
+        finish(instant) {
+            if (this.finished) return;
+            this.finished = true;
+
+            if (instant) {
+                detach(this.preloader);
+                this.onDone();
+                return;
+            }
+
+            // Let the bar reach the end before the curtain lifts
+            this.setProgress(1, true);
+            setTimeout(() => {
+                this.preloader.classList.add('is-done');
+                root.classList.remove('is-locked');
+                this.onDone();
+                setTimeout(() => detach(this.preloader), 600);
+            }, 250);
         }
     };
 
@@ -309,6 +423,7 @@
             }
 
             this.themeColorMeta?.setAttribute('content', CONFIG.THEME_COLORS[theme]);
+            FluidLines.refreshColor();
 
             // Update theme toggle aria-label
             if (this.themeToggle) {
@@ -323,33 +438,71 @@
         }
     };
 
-    // ===== HERO VIDEO MODULE =====
-    // Plays only when it is welcome (no reduced motion, no data saver)
-    // and only while the hero is actually on screen.
-    const HeroVideo = {
+    // ===== LOOPING VIDEOS MODULE =====
+    // The hero and process videos play by themselves, muted, for as long as
+    // they are on screen. The loop point is hidden: just before the end the
+    // video fades out to its poster (which is its own first frame), rewinds
+    // behind it and fades back in, so it never visibly jumps to the start.
+    const LoopingVideos = {
         init() {
-            this.video = document.querySelector('.hero__video');
-            if (!this.video) return;
-
+            const videos = document.querySelectorAll('.hero__video, .video-showcase__video');
             const saveData = navigator.connection && navigator.connection.saveData;
-            if (reducedMotion.matches || saveData) return;
 
-            if (!window.IntersectionObserver) {
-                this.play();
+            if (reducedMotion.matches || saveData) {
+                // Nothing moves on its own: the process videos get native controls instead
+                document.querySelectorAll('.video-showcase__video').forEach(video => {
+                    video.controls = true;
+                });
                 return;
             }
 
-            new IntersectionObserver(([entry]) => {
-                if (entry.isIntersecting) {
-                    this.play();
-                } else {
-                    this.video.pause();
-                }
-            }, { threshold: 0.1 }).observe(this.video);
+            videos.forEach(video => this.setup(video));
         },
 
-        play() {
-            const attempt = this.video.play();
+        setup(video) {
+            video.muted = true;
+            video.loop = false; // the loop is handled below, with the fade
+            video.playsInline = true;
+            video.classList.add('fx-loop');
+
+            // The poster stays behind the video for the fade to land on
+            if (video.poster) {
+                video.parentElement.style.backgroundImage = `url("${video.poster}")`;
+            }
+
+            video.addEventListener('timeupdate', () => {
+                const remaining = video.duration - video.currentTime;
+                if (remaining > 0 && remaining < CONFIG.VIDEO_LOOP_FADE) {
+                    video.classList.add('is-rewinding');
+                }
+            });
+
+            video.addEventListener('ended', () => {
+                video.currentTime = 0;
+                this.play(video);
+            });
+
+            video.addEventListener('seeked', () => {
+                if (video.currentTime < 0.3) video.classList.remove('is-rewinding');
+            });
+
+            if (!window.IntersectionObserver) {
+                this.play(video);
+                return;
+            }
+
+            // Play only while visible: saves battery and data
+            new IntersectionObserver(([entry]) => {
+                if (entry.isIntersecting) {
+                    this.play(video);
+                } else {
+                    video.pause();
+                }
+            }, { threshold: 0.1 }).observe(video);
+        },
+
+        play(video) {
+            const attempt = video.play();
             // Autoplay can be refused (low power mode): the poster stays visible
             if (attempt && attempt.catch) attempt.catch(() => {});
         }
@@ -363,7 +516,7 @@
 
         // --- Liquid distortion (SVG displacement), the "fluid" in the name ---
         // `shape(t)` maps progress 0..1 to a displacement amount in px.
-        liquid(element, filterId, duration, shape) {
+        liquid(element, filterId, duration, shape, onDone) {
             const map = document.querySelector(`#${filterId} feDisplacementMap`);
             if (!map || reducedMotion.matches) return;
 
@@ -382,6 +535,7 @@
                     job.frame = requestAnimationFrame(tick);
                 } else {
                     this.stopLiquid(filterId);
+                    if (onDone) onDone();
                 }
             };
             job.frame = requestAnimationFrame(tick);
@@ -396,13 +550,39 @@
             this.liquidJobs.delete(filterId);
         },
 
-        // The handle arrives warped and settles, like ink finding its edge
-        settleTitle(strength = 1) {
+        // The handle arrives warped and settles, like ink finding its edge.
+        // It then rests, readable, and the ink stirs again: a slow loop that
+        // runs only while the hero is on screen and the tab is visible.
+        startTitleLoop(first) {
             const title = document.querySelector('.hero__name');
-            if (!title) return;
+            if (!title || reducedMotion.matches) return;
+            if (!first && this.liquidJobs.has('fx-liquid-title')) return; // already stirring
+
+            clearTimeout(this.titleTimer);
 
             const easeOutExpo = (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
-            this.liquid(title, 'fx-liquid-title', 1700, (t) => 90 * strength * (1 - easeOutExpo(t)));
+            // On arrival it starts warped (it is fading in anyway). Afterwards
+            // the distortion swells in before settling, so it never snaps.
+            const swell = 0.22;
+            const shape = first
+                ? (t) => 90 * (1 - easeOutExpo(t))
+                : (t) => (t < swell
+                    ? 70 * Math.pow(t / swell, 2)
+                    : 70 * (1 - easeOutExpo((t - swell) / (1 - swell))));
+
+            this.liquid(title, 'fx-liquid-title', first ? 1700 : 2200, shape, () => {
+                this.titleTimer = setTimeout(() => {
+                    if (this.isHeroVisible()) this.startTitleLoop(false);
+                }, CONFIG.TITLE_HOLD);
+            });
+        },
+
+        stopTitleLoop() {
+            clearTimeout(this.titleTimer);
+        },
+
+        isHeroVisible() {
+            return !document.hidden && !document.body.classList.contains('is-past-hero');
         },
 
         // A single soft ripple when a work is hovered (mouse only)
@@ -469,41 +649,6 @@
         }
     };
 
-    // ===== VIDEO SHOWCASE MODULE =====
-    // Posters with a quiet play control; native controls appear once playing.
-    const VideoShowcase = {
-        init() {
-            this.items = document.querySelectorAll('.video-showcase__media');
-
-            this.items.forEach(media => {
-                const video = media.querySelector('video');
-                const playButton = media.querySelector('.video-showcase__play');
-                if (!video || !playButton) return;
-
-                video.controls = false;
-                playButton.hidden = false;
-
-                playButton.addEventListener('click', () => {
-                    this.pauseOthers(video);
-                    playButton.hidden = true;
-                    video.controls = true;
-                    video.focus({ preventScroll: true }); // the button is gone: keep focus here
-
-                    const attempt = video.play();
-                    if (attempt && attempt.catch) attempt.catch(() => {});
-                });
-
-                video.addEventListener('play', () => this.pauseOthers(video));
-            });
-        },
-
-        pauseOthers(current) {
-            this.items.forEach(media => {
-                const video = media.querySelector('video');
-                if (video && video !== current && !video.paused) video.pause();
-            });
-        }
-    };
     // ===== PORTFOLIO MODULE =====
     const Portfolio = {
         init() {
@@ -542,6 +687,9 @@
             // Load more button
             this.loadMoreBtn?.addEventListener('click', () => this.loadMore());
 
+            // Crossing the 4-column breakpoint: start again with full rows
+            wideGrid.addEventListener('change', () => this.applyFilters());
+
             // Empty state reset
             this.resetBtn?.addEventListener('click', () => this.resetFilters());
 
@@ -577,7 +725,10 @@
         resetFilters() {
             const allButton = document.querySelector('.filter-btn[data-filter="all"]');
             if (allButton) this.setActiveFilterButton(allButton);
-            if (this.bodyFilter) this.bodyFilter.value = 'all';
+            if (this.bodyFilter) {
+                this.bodyFilter.value = 'all';
+                CustomSelect.sync(this.bodyFilter);
+            }
 
             this.currentFilters = { style: 'all', area: 'all' };
             this.applyFilters();
@@ -603,11 +754,15 @@
 
             const itemsToShow = this.filteredData.slice(
                 this.displayedItems,
-                this.displayedItems + CONFIG.PORTFOLIO_ITEMS_PER_LOAD
+                this.displayedItems + this.getItemsPerLoad()
             );
 
+            // The first rows are fetched straight away (the preloader waits for
+            // them); everything loaded later stays lazy.
+            const eager = this.displayedItems === 0;
+
             itemsToShow.forEach((item, index) => {
-                const portfolioItem = this.createPortfolioItem(item, index);
+                const portfolioItem = this.createPortfolioItem(item, index, eager);
                 this.portfolioGrid.appendChild(portfolioItem);
                 this.revealItem(portfolioItem);
             });
@@ -629,7 +784,7 @@
             }
         },
 
-        createPortfolioItem(item, index) {
+        createPortfolioItem(item, index, eager) {
             const label = `${this.getStyleLabel(item.style)}, ${this.getAreaLabel(item.area)}`;
             const base = CONFIG.PORTFOLIO_IMAGE_PATH + item.file;
 
@@ -647,14 +802,36 @@
             image.alt = '';
             image.width = 480;
             image.height = 640;
-            image.loading = 'lazy';
+            image.loading = eager ? 'eager' : 'lazy';
             image.decoding = 'async';
             image.draggable = false;
             image.sizes = CONFIG.PORTFOLIO_SIZES;
             image.srcset = `${base}-480.webp 480w, ${base}-960.webp 960w`;
-            image.addEventListener('load', () => image.classList.add('is-loaded'), { once: true });
+
+            // Until the picture arrives the tile shows a soft placeholder (CSS).
+            // One retry on failure, then the placeholder stays, with the logo.
+            let retried = false;
+            const markLoaded = () => {
+                image.classList.add('is-loaded');
+                portfolioItem.classList.add('has-image');
+                portfolioItem.classList.remove('is-broken');
+            };
+
+            image.addEventListener('load', markLoaded);
+            image.addEventListener('error', () => {
+                if (retried) {
+                    portfolioItem.classList.add('is-broken');
+                    return;
+                }
+                retried = true;
+                setTimeout(() => {
+                    image.removeAttribute('srcset');
+                    image.src = `${base}-480.webp?retry=1`;
+                }, CONFIG.IMAGE_RETRY_DELAY);
+            });
+
             image.src = `${base}-480.webp`;
-            if (image.complete) image.classList.add('is-loaded');
+            if (image.complete && image.naturalWidth > 0) markLoaded();
 
             portfolioItem.appendChild(image);
             return portfolioItem;
@@ -682,6 +859,11 @@
                 'bozza': 'Bozza/Studio'
             };
             return labels[area] || area;
+        },
+
+        getItemsPerLoad() {
+            const perLoad = CONFIG.PORTFOLIO_ITEMS_PER_LOAD;
+            return wideGrid.matches ? perLoad.wide : perLoad.narrow;
         },
 
         getTile(item) {
@@ -1000,87 +1182,934 @@
         }
     };
 
+    // ===== FLUID LINES MODULE =====
+    // Marbled ink behind the page, in the manner of the fluid tattoos: the
+    // lines are the contours of a noise field that is warped by more noise
+    // and drifts through time, so they bend, nest, split and rejoin with no
+    // pattern and never repeat. Each stroke swells and thins along its length
+    // and fades to nothing where the field goes quiet. Kept at the edge of
+    // perception (see the canvas opacity). One fixed canvas behind all
+    // content; a single still frame with reduced motion, paused while hidden.
+    const FluidLines = {
+        CELL: 10,                   // px between field samples (the curves are traced between them)
+        FRAME_MS: 1000 / 30,
+        SPEED: 0.000035,            // field time per millisecond: a shape lives for about half a minute
+        // [contour level, weight]: weight 1 is a full stroke that swells,
+        // a low weight is the hairline that runs alongside it
+        LEVELS: [[-0.23, 1], [-0.185, 0.2], [0.05, 1], [0.1, 0.2], [0.29, 0.65]],
+        WIDTHS: [0.5, 0.8, 1.2, 1.8, 2.6, 3.6, 4.8],
+        // Which cell edges a contour crosses, per corner pattern (0 top, 1 right, 2 bottom, 3 left)
+        CASES: [
+            [], [3, 2], [2, 1], [3, 1], [0, 1], [0, 3, 2, 1], [0, 2], [0, 3],
+            [0, 3], [0, 2], [0, 1, 3, 2], [0, 1], [3, 1], [2, 1], [3, 2], []
+        ],
+
+        init() {
+            this.canvas = document.createElement('canvas');
+            this.canvas.className = 'fluid-lines';
+            this.canvas.setAttribute('aria-hidden', 'true');
+            document.body.insertBefore(this.canvas, document.body.firstChild);
+
+            this.context = this.canvas.getContext('2d');
+            if (!this.context) return;
+
+            this.seed();
+            this.buckets = this.WIDTHS.map(() => []);
+            this.refreshColor();
+            this.resize();
+
+            // ResizeObserver, not a resize listener: fires once per layout change
+            if (window.ResizeObserver) {
+                new ResizeObserver(() => this.resize()).observe(document.documentElement);
+            }
+
+            if (reducedMotion.matches) return; // the single frame from resize() stays
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(this.frame);
+                } else {
+                    this.start();
+                }
+            });
+
+            this.start();
+        },
+
+        // A new shuffle on every visit: the drawing is never the same twice
+        seed() {
+            const table = new Uint8Array(256);
+            for (let i = 0; i < 256; i++) table[i] = i;
+            for (let i = 255; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const swap = table[i];
+                table[i] = table[j];
+                table[j] = swap;
+            }
+
+            this.perm = new Uint8Array(512);
+            for (let i = 0; i < 512; i++) this.perm[i] = table[i & 255];
+            this.offset = Math.random() * 200;
+        },
+
+        // Lines take the text colour, so they are white on dark and ink on light.
+        // Strokes are drawn solid and the whole canvas is faded, so overlapping
+        // pieces of a line never add up to a darker spot.
+        refreshColor() {
+            if (!this.canvas) return;
+            this.color = getComputedStyle(root).getPropertyValue('--color-text').trim() || '#f2f2f0';
+            this.canvas.style.opacity = root.classList.contains('light') ? '0.085' : '0.075';
+            if (this.width) this.draw(this.lastTime || 0);
+        },
+
+        resize() {
+            const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            if (width === this.width && height === this.height) return;
+
+            this.width = width;
+            this.height = height;
+            this.cols = Math.ceil(width / this.CELL);
+            this.rows = Math.ceil(height / this.CELL);
+            this.values = new Float32Array((this.cols + 1) * (this.rows + 1));
+            // Size of one "pool" of the field: follows the screen, within limits
+            this.feature = Math.min(Math.max(Math.min(width, height) * 0.5, 240), 460);
+
+            this.canvas.width = Math.round(width * ratio);
+            this.canvas.height = Math.round(height * ratio);
+            this.context.setTransform(ratio, 0, 0, ratio, 0, 0);
+            this.draw(this.lastTime || 0);
+        },
+
+        start() {
+            cancelAnimationFrame(this.frame);
+            let last = 0;
+
+            const tick = (now) => {
+                this.frame = requestAnimationFrame(tick);
+                if (now - last < this.FRAME_MS) return;
+                last = now;
+                this.draw(now);
+            };
+
+            this.frame = requestAnimationFrame(tick);
+        },
+
+        gradient(hash, x, y, z) {
+            const h = hash & 15;
+            const u = h < 8 ? x : y;
+            const v = h < 4 ? y : (h === 12 || h === 14 ? x : z);
+            return ((h & 1) === 0 ? u : -u) + ((h & 2) === 0 ? v : -v);
+        },
+
+        // Classic 3D gradient noise, roughly -1..1; the third axis is time
+        noise(x, y, z) {
+            const p = this.perm;
+            const fx = Math.floor(x);
+            const fy = Math.floor(y);
+            const fz = Math.floor(z);
+            const X = fx & 255;
+            const Y = fy & 255;
+            const Z = fz & 255;
+            x -= fx;
+            y -= fy;
+            z -= fz;
+
+            const u = x * x * x * (x * (x * 6 - 15) + 10);
+            const v = y * y * y * (y * (y * 6 - 15) + 10);
+            const w = z * z * z * (z * (z * 6 - 15) + 10);
+
+            const A = p[X] + Y;
+            const B = p[X + 1] + Y;
+            const AA = p[A] + Z;
+            const AB = p[A + 1] + Z;
+            const BA = p[B] + Z;
+            const BB = p[B + 1] + Z;
+            const g = this.gradient;
+
+            const x00 = g(p[AA], x, y, z);
+            const x10 = g(p[AB], x, y - 1, z);
+            const x01 = g(p[AA + 1], x, y, z - 1);
+            const x11 = g(p[AB + 1], x, y - 1, z - 1);
+            const near = x00 + u * (g(p[BA], x - 1, y, z) - x00);
+            const far = x10 + u * (g(p[BB], x - 1, y - 1, z) - x10);
+            const near2 = x01 + u * (g(p[BA + 1], x - 1, y, z - 1) - x01);
+            const far2 = x11 + u * (g(p[BB + 1], x - 1, y - 1, z - 1) - x11);
+            const front = near + v * (far - near);
+            const back = near2 + v * (far2 - near2);
+
+            return front + w * (back - front);
+        },
+
+        smooth(from, to, value) {
+            const k = Math.min(Math.max((value - from) / (to - from), 0), 1);
+            return k * k * (3 - 2 * k);
+        },
+
+        draw(time) {
+            const { context, width, height, cols, rows, values, buckets } = this;
+            if (!context || !width) return;
+
+            this.lastTime = time;
+
+            const cell = this.CELL;
+            const scale = 1 / this.feature;
+            const stretch = scale * 0.62;   // pools are taller than wide, like ink running down
+            const t = this.offset + time * this.SPEED;
+            // The drawing slides a little with the page instead of sitting still behind it
+            const drift = reducedMotion.matches ? 0 : window.scrollY * 0.12;
+
+            // 1. Sample the field: noise looked up through a second, slower noise
+            //    (that warp is what turns blobs into marbling)
+            for (let row = 0, i = 0; row <= rows; row++) {
+                const v = (row * cell + drift) * stretch;
+                for (let col = 0; col <= cols; col++, i++) {
+                    const u = col * cell * scale;
+                    const warpX = this.noise(u * 0.9 + 11.3, v * 0.9, t * 0.6);
+                    const warpY = this.noise(u * 0.9, v * 0.9 + 37.7, t * 0.6 + 5.1);
+                    values[i] = this.noise(u + warpX * 1.9, v + warpY * 1.9, t);
+                }
+            }
+
+            // 2. Trace the contours cell by cell, sorting the pieces by stroke width
+            for (let b = 0; b < buckets.length; b++) buckets[b].length = 0;
+
+            const stride = cols + 1;
+            let x0 = 0, y0 = 0, a = 0, b = 0, c = 0, d = 0, level = 0;
+            let pointX = 0, pointY = 0;
+
+            const cross = (edge) => {
+                if (edge === 0) {
+                    pointX = x0 + cell * (level - a) / (b - a); pointY = y0;
+                } else if (edge === 1) {
+                    pointX = x0 + cell; pointY = y0 + cell * (level - b) / (c - b);
+                } else if (edge === 2) {
+                    pointX = x0 + cell * (level - d) / (c - d); pointY = y0 + cell;
+                } else {
+                    pointX = x0; pointY = y0 + cell * (level - a) / (d - a);
+                }
+            };
+
+            const emit = (edgeFrom, edgeTo, weight) => {
+                cross(edgeFrom);
+                const x1 = pointX, y1 = pointY;
+                cross(edgeTo);
+                const x2 = pointX, y2 = pointY;
+
+                const u = (x1 + x2) * 0.5 * scale;
+                const v = ((y1 + y2) * 0.5 + drift) * stretch;
+
+                // Where the lines exist at all: wide areas stay empty, edges taper off
+                const presence = this.smooth(-0.24, 0.12, this.noise(u * 0.5 + 50.5, v * 0.5 + 50.5, t * 0.5 + 9.2));
+                if (presence <= 0) return;
+
+                let lineWidth = 0.65;
+                if (weight >= 0.5) {
+                    // The stroke fattens and thins on its own, unrelated to its shape
+                    const swell = this.smooth(-0.15, 0.4, this.noise(u * 1.6 + 90.1, v * 1.6, t * 0.8 + 3.3));
+                    lineWidth = (0.55 + 4.2 * swell * swell) * weight;
+                }
+                lineWidth *= presence;
+                if (lineWidth < 0.3) return;
+
+                let index = 0;
+                while (index < this.WIDTHS.length - 1 && this.WIDTHS[index] < lineWidth) index++;
+                buckets[index].push(x1, y1, x2, y2);
+            };
+
+            for (let l = 0; l < this.LEVELS.length; l++) {
+                level = this.LEVELS[l][0];
+                const weight = this.LEVELS[l][1];
+
+                for (let row = 0; row < rows; row++) {
+                    y0 = row * cell;
+                    let i = row * stride;
+
+                    for (let col = 0; col < cols; col++, i++) {
+                        a = values[i];
+                        b = values[i + 1];
+                        c = values[i + stride + 1];
+                        d = values[i + stride];
+
+                        const pattern = (a > level ? 8 : 0) | (b > level ? 4 : 0) | (c > level ? 2 : 0) | (d > level ? 1 : 0);
+                        if (pattern === 0 || pattern === 15) continue;
+
+                        x0 = col * cell;
+                        const edges = this.CASES[pattern];
+                        emit(edges[0], edges[1], weight);
+                        if (edges.length === 4) emit(edges[2], edges[3], weight);
+                    }
+                }
+            }
+
+            // 3. One stroke call per width
+            context.clearRect(0, 0, width, height);
+            context.strokeStyle = this.color;
+            context.lineCap = 'round';
+
+            for (let k = 0; k < buckets.length; k++) {
+                const pieces = buckets[k];
+                if (!pieces.length) continue;
+
+                context.lineWidth = this.WIDTHS[k];
+                context.beginPath();
+                for (let i = 0; i < pieces.length; i += 4) {
+                    context.moveTo(pieces[i], pieces[i + 1]);
+                    context.lineTo(pieces[i + 2], pieces[i + 3]);
+                }
+                context.stroke();
+            }
+        }
+    };
+
+    // ===== CUSTOM SELECT MODULE =====
+    // Replaces the system drop-down with one drawn in the site's own style
+    // (the native list ignores the theme and looks like the OS, not the site).
+    // The real <select> stays in the page, hidden, as the source of truth:
+    // forms, filters and browsers without JS keep working unchanged.
+    const CustomSelect = {
+        instances: new Map(),
+        openInstance: null,
+
+        init() {
+            document.querySelectorAll('select.form__select').forEach(select => this.enhance(select));
+
+            document.addEventListener('pointerdown', (e) => {
+                if (this.openInstance && !this.openInstance.wrapper.contains(e.target)) {
+                    this.close(this.openInstance);
+                }
+            });
+        },
+
+        enhance(select) {
+            const uid = select.id || `select-${this.instances.size + 1}`;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'select';
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.id = `${uid}-button`;
+            button.className = 'form__select select__button';
+            button.setAttribute('aria-haspopup', 'listbox');
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-controls', `${uid}-list`);
+
+            const value = document.createElement('span');
+            value.className = 'select__value';
+            button.appendChild(value);
+
+            // Name: the visible <label> if there is one, else the select's aria-label
+            const label = select.id ? document.querySelector(`label[for="${select.id}"]`) : null;
+            if (label) {
+                label.id = label.id || `${uid}-label`;
+                button.setAttribute('aria-labelledby', `${label.id} ${button.id}`);
+                label.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    button.focus();
+                });
+            }
+
+            const list = document.createElement('ul');
+            list.id = `${uid}-list`;
+            list.className = 'select__list';
+            list.setAttribute('role', 'listbox');
+            list.tabIndex = -1;
+            list.hidden = true;
+
+            const options = Array.from(select.options).map((option, index) => {
+                const item = document.createElement('li');
+                item.id = `${uid}-option-${index}`;
+                item.className = 'select__option';
+                item.setAttribute('role', 'option');
+                item.dataset.index = index;
+                item.textContent = option.text;
+                list.appendChild(item);
+                return item;
+            });
+
+            select.classList.add('select__native');
+            select.tabIndex = -1;
+            select.setAttribute('aria-hidden', 'true');
+            wrapper.append(button, list);
+
+            const instance = {
+                select, wrapper, button, value, list, options,
+                activeIndex: select.selectedIndex,
+                baseLabel: label ? '' : (select.getAttribute('aria-label') || '')
+            };
+            this.instances.set(select, instance);
+
+            button.addEventListener('click', () => this.toggle(instance));
+            button.addEventListener('keydown', (e) => this.handleKey(instance, e));
+            list.addEventListener('click', (e) => {
+                const item = e.target.closest('.select__option');
+                if (item) this.choose(instance, Number(item.dataset.index));
+            });
+            select.addEventListener('change', () => this.sync(select));
+
+            this.sync(select);
+        },
+
+        // Bring the custom control in line with the native value
+        // (call it after changing `select.value` from code)
+        sync(select) {
+            const instance = this.instances.get(select);
+            if (!instance) return;
+
+            const index = Math.max(select.selectedIndex, 0);
+            const text = select.options[index] ? select.options[index].text : '';
+
+            instance.value.textContent = text;
+            instance.button.classList.toggle('is-placeholder', !select.value);
+            if (instance.baseLabel) {
+                instance.button.setAttribute('aria-label', `${instance.baseLabel}: ${text}`);
+            }
+
+            instance.options.forEach((item, i) => {
+                item.setAttribute('aria-selected', String(i === index));
+                item.classList.toggle('is-selected', i === index);
+            });
+        },
+
+        syncAll() {
+            this.instances.forEach((instance, select) => this.sync(select));
+        },
+
+        toggle(instance) {
+            if (this.openInstance === instance) {
+                this.close(instance);
+            } else {
+                this.open(instance);
+            }
+        },
+
+        open(instance) {
+            if (this.openInstance) this.close(this.openInstance);
+
+            instance.list.hidden = false;
+            instance.wrapper.classList.add('is-open');
+            instance.button.setAttribute('aria-expanded', 'true');
+            this.openInstance = instance;
+
+            // Open upwards when there is not enough room below
+            const rect = instance.button.getBoundingClientRect();
+            const below = window.innerHeight - rect.bottom;
+            const needed = instance.list.offsetHeight + 12;
+            instance.wrapper.classList.toggle('is-up', below < needed && rect.top > below);
+
+            this.setActive(instance, Math.max(instance.select.selectedIndex, 0));
+        },
+
+        close(instance) {
+            instance.list.hidden = true;
+            instance.wrapper.classList.toggle('is-open', false);
+            instance.wrapper.classList.toggle('is-up', false);
+            instance.button.setAttribute('aria-expanded', 'false');
+            instance.button.toggleAttribute('aria-activedescendant', false);
+            if (this.openInstance === instance) this.openInstance = null;
+        },
+
+        setActive(instance, index) {
+            const last = instance.options.length - 1;
+            instance.activeIndex = Math.min(Math.max(index, 0), last);
+
+            instance.options.forEach((item, i) => item.classList.toggle('is-active', i === instance.activeIndex));
+
+            const active = instance.options[instance.activeIndex];
+            if (active) {
+                instance.button.setAttribute('aria-activedescendant', active.id);
+                active.scrollIntoView({ block: 'nearest' });
+            }
+        },
+
+        choose(instance, index) {
+            if (instance.select.selectedIndex !== index) {
+                instance.select.selectedIndex = index;
+                instance.select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            this.close(instance);
+            instance.button.focus();
+        },
+
+        handleKey(instance, e) {
+            const isOpen = this.openInstance === instance;
+
+            switch (e.key) {
+                case 'ArrowDown':
+                case 'ArrowUp': {
+                    e.preventDefault();
+                    if (!isOpen) {
+                        this.open(instance);
+                    } else {
+                        this.setActive(instance, instance.activeIndex + (e.key === 'ArrowDown' ? 1 : -1));
+                    }
+                    break;
+                }
+                case 'Home':
+                case 'End':
+                    if (isOpen) {
+                        e.preventDefault();
+                        this.setActive(instance, e.key === 'Home' ? 0 : instance.options.length - 1);
+                    }
+                    break;
+                case 'Enter':
+                case ' ':
+                    e.preventDefault();
+                    if (isOpen) {
+                        this.choose(instance, instance.activeIndex);
+                    } else {
+                        this.open(instance);
+                    }
+                    break;
+                case 'Escape':
+                    if (isOpen) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        this.close(instance);
+                    }
+                    break;
+                case 'Tab':
+                    if (isOpen) this.close(instance);
+                    break;
+                default:
+                    this.typeAhead(instance, e, isOpen);
+            }
+        },
+
+        // Typing a letter jumps to the next option starting with it
+        typeAhead(instance, e, isOpen) {
+            if (e.key.length !== 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+
+            const letter = e.key.toLowerCase();
+            const count = instance.options.length;
+            const from = isOpen ? instance.activeIndex : instance.select.selectedIndex;
+
+            for (let step = 1; step <= count; step++) {
+                const index = (from + step) % count;
+                if (instance.options[index].textContent.trim().toLowerCase().startsWith(letter)) {
+                    if (isOpen) {
+                        this.setActive(instance, index);
+                    } else {
+                        this.choose(instance, index);
+                    }
+                    break;
+                }
+            }
+        }
+    };
     // ===== FORMS MODULE =====
+    // Booking request in four short steps: idea, placement, references, date
+    // and contacts. Where the request goes is decided in CONFIG.BOOKING: to a
+    // form endpoint when one is configured, otherwise WhatsApp opens with the
+    // whole request already written.
     const Forms = {
         init() {
             this.bookingForm = document.getElementById('booking-form');
+            if (!this.bookingForm) return;
+
+            this.steps = Array.from(this.bookingForm.querySelectorAll('.form__step'));
+            this.progressItems = this.bookingForm.querySelectorAll('.steps__item');
+            this.counter = this.bookingForm.querySelector('.steps__count');
+            this.prevBtn = this.bookingForm.querySelector('[data-step-prev]');
+            this.nextBtn = this.bookingForm.querySelector('[data-step-next]');
+            this.submitBtn = this.bookingForm.querySelector('button[type="submit"]');
+            this.donePanel = document.getElementById('booking-done');
+
+            this.currentStep = 0;
+            this.files = [];
+            this.previewUrls = [];
+
             this.bindEvents();
+            this.setupUpload();
+            this.setupCalendar();
+
+            this.bookingForm.classList.add('is-enhanced');
+            this.showStep(0, false);
         },
 
         bindEvents() {
-            // Booking form
-            this.bookingForm?.addEventListener('submit', (e) => this.handleBookingSubmit(e));
+            this.bookingForm.addEventListener('submit', (e) => this.handleBookingSubmit(e));
+            this.prevBtn?.addEventListener('click', () => this.showStep(this.currentStep - 1, true));
+            this.nextBtn?.addEventListener('click', () => this.goNext());
+
+            this.donePanel?.querySelector('[data-booking-restart]')?.addEventListener('click', () => this.restart());
 
             // Real-time validation
-            const inputs = document.querySelectorAll('.booking__form .form__input, .booking__form .form__textarea, .booking__form .form__select');
+            const inputs = this.bookingForm.querySelectorAll('.form__input, .form__textarea');
             inputs.forEach(input => {
                 input.addEventListener('blur', () => this.validateField(input));
                 input.addEventListener('input', () => this.clearError(input));
             });
         },
 
+        // ----- Steps -----
+        showStep(index, moveFocus) {
+            const last = this.steps.length - 1;
+            this.currentStep = Math.min(Math.max(index, 0), last);
+
+            this.steps.forEach((step, i) => {
+                step.hidden = i !== this.currentStep;
+            });
+
+            this.progressItems.forEach((item, i) => {
+                item.classList.toggle('is-done', i < this.currentStep);
+                item.classList.toggle('is-current', i === this.currentStep);
+            });
+
+            if (this.counter) this.counter.textContent = `${this.currentStep + 1} / ${this.steps.length}`;
+            if (this.prevBtn) this.prevBtn.hidden = this.currentStep === 0;
+            if (this.nextBtn) this.nextBtn.hidden = this.currentStep === last;
+            if (this.submitBtn) this.submitBtn.hidden = this.currentStep !== last;
+
+            if (moveFocus) {
+                const legend = this.steps[this.currentStep].querySelector('.form__legend');
+                legend?.focus({ preventScroll: true });
+                this.bookingForm.scrollIntoView({ block: 'nearest', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+            }
+        },
+
+        goNext() {
+            if (this.validateStep(this.currentStep)) {
+                this.showStep(this.currentStep + 1, true);
+            }
+        },
+
+        validateStep(index) {
+            const fields = this.steps[index].querySelectorAll('[required]');
+            let firstInvalid = null;
+
+            fields.forEach(field => {
+                if (!this.validateField(field) && !firstInvalid) firstInvalid = field;
+            });
+
+            firstInvalid?.focus();
+            return !firstInvalid;
+        },
+
+        restart() {
+            this.bookingForm.reset();
+            this.files = [];
+            this.syncFiles();
+            if (this.dateInput) this.dateInput.value = '';
+            this.renderCalendar();
+            CustomSelect.syncAll();
+
+            this.donePanel.hidden = true;
+            this.bookingForm.hidden = false;
+            this.showStep(0, true);
+        },
+
+        // ----- Submit -----
         async handleBookingSubmit(e) {
             e.preventDefault();
 
-            const form = e.target;
-            const submitBtn = form.querySelector('button[type="submit"]');
-
-            if (!this.validateForm(form)) {
-                form.querySelector('.error')?.focus();
+            // Enter inside a field moves on instead of sending half a request
+            if (this.currentStep < this.steps.length - 1) {
+                this.goNext();
                 return;
             }
 
-            setButtonLoading(submitBtn, true);
+            const invalidStep = this.steps.findIndex((step, i) => !this.validateStep(i));
+            if (invalidStep !== -1) {
+                this.showStep(invalidStep, false);
+                this.validateStep(invalidStep);
+                return;
+            }
+
+            const formData = new FormData(this.bookingForm);
+
+            // Check honeypot
+            if (formData.get('website')) return;
+
+            const endpoint = CONFIG.BOOKING.ENDPOINT;
+
+            if (!endpoint) {
+                // No endpoint configured: hand the request over to WhatsApp.
+                // (Opened right here, inside the click, so it is not blocked.)
+                const url = this.getWhatsAppUrl();
+                window.open(url, '_blank', 'noopener');
+                this.showDone('whatsapp', url);
+                return;
+            }
+
+            setButtonLoading(this.submitBtn, true);
 
             try {
-                const formData = new FormData(form);
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { Accept: 'application/json' }
+                });
 
-                // Check honeypot
-                if (formData.get('website')) {
-                    throw new Error('Spam detected');
-                }
-
-                const response = await this.submitForm('/api/booking', formData);
-
-                if (response.ok) {
-                    this.showSuccess('Richiesta inviata con successo! Ti contatteremo presto.');
-                    form.reset();
-                } else {
-                    throw new Error('Errore durante l\'invio');
-                }
+                if (!response.ok) throw new Error(`Server replied ${response.status}`);
+                this.showDone('sent');
             } catch (error) {
-                this.showError('Errore durante l\'invio del modulo. Riprova pi\u00f9 tardi.');
+                this.showError("Invio non riuscito. Riprova o scrivimi su WhatsApp.");
                 console.error('Form submission error:', error);
             } finally {
-                setButtonLoading(submitBtn, false);
+                setButtonLoading(this.submitBtn, false);
             }
         },
 
-        async submitForm(endpoint, formData) {
-            // Simulate API call for demo
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    resolve({ ok: true });
-                }, 1000);
+        getFieldText(name) {
+            const field = this.bookingForm.elements[name];
+            if (!field) return '';
+
+            if (field.tagName === 'SELECT') {
+                return field.value ? field.options[field.selectedIndex].text : '';
+            }
+            return (field.value || '').trim();
+        },
+
+        getDateText() {
+            if (!this.dateInput || !this.dateInput.value) return '';
+
+            const [year, month, day] = this.dateInput.value.split('-').map(Number);
+            return new Date(year, month - 1, day).toLocaleDateString('it-IT', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
             });
         },
 
-        validateForm(form) {
-            const requiredFields = form.querySelectorAll('[required]');
-            let isValid = true;
+        // The whole request as a ready-to-send WhatsApp message
+        getWhatsAppUrl() {
+            const date = this.getDateText();
+            const time = this.getFieldText('preferred-time');
+            const budget = this.getFieldText('budget');
 
-            requiredFields.forEach(field => {
-                if (!this.validateField(field)) {
-                    isValid = false;
+            const lines = [
+                'Ciao Sken! Vorrei prenotare un tatuaggio.',
+                '',
+                ['Nome', this.getFieldText('name')],
+                ['Stile', this.getFieldText('tattoo-type')],
+                ['Zona', this.getFieldText('body-area')],
+                ['Dimensioni', this.getFieldText('size')],
+                ['Idea', this.getFieldText('message')],
+                ['Budget', /^\d+([.,]\d+)?$/.test(budget) ? `${budget} €` : budget],
+                ['Data preferita', date ? (time ? `${date} (${time})` : date) : ''],
+                ['Email', this.getFieldText('email')],
+                ['Telefono', this.getFieldText('phone')],
+                ['Foto di riferimento', this.files.length ? `${this.files.length}, le allego qui sotto` : '']
+            ]
+                .filter(line => typeof line === 'string' || line[1])
+                .map(line => (typeof line === 'string' ? line : `${line[0]}: ${line[1]}`));
+
+            return `https://wa.me/${CONFIG.BOOKING.WHATSAPP}?text=${encodeURIComponent(lines.join('\n'))}`;
+        },
+
+        showDone(mode, url) {
+            const title = this.donePanel.querySelector('.booking__done-title');
+            const text = this.donePanel.querySelector('.booking__done-text');
+            const link = this.donePanel.querySelector('.booking__done-link');
+
+            if (mode === 'whatsapp') {
+                title.textContent = 'Manca solo un tocco';
+                const count = this.files.length;
+                const attach = count === 1
+                    ? 'allega lì la foto di riferimento'
+                    : `allega lì le ${count} foto di riferimento`;
+
+                text.textContent = count
+                    ? `Si è aperto WhatsApp con la tua richiesta già scritta: premi invia e ${attach}.`
+                    : 'Si è aperto WhatsApp con la tua richiesta già scritta: premi invia e ti rispondo appena possibile.';
+                link.href = url;
+                link.hidden = false;
+            } else {
+                title.textContent = 'Richiesta inviata';
+                text.textContent = 'Grazie! Ti rispondo appena possibile per confermare data e dettagli.';
+                link.hidden = true;
+            }
+
+            this.bookingForm.hidden = true;
+            this.donePanel.hidden = false;
+            this.donePanel.focus({ preventScroll: true });
+            this.donePanel.scrollIntoView({ block: 'nearest' });
+        },
+        // ----- Reference pictures -----
+        setupUpload() {
+            this.fileInput = this.bookingForm.querySelector('#references');
+            this.dropZone = this.bookingForm.querySelector('.upload');
+            this.fileList = this.bookingForm.querySelector('.upload__list');
+            this.fileError = document.getElementById('references-error');
+            if (!this.fileInput || !this.dropZone) return;
+
+            this.fileInput.addEventListener('change', () => this.addFiles(this.fileInput.files));
+
+            ['dragenter', 'dragover'].forEach(type => {
+                this.dropZone.addEventListener(type, (e) => {
+                    e.preventDefault();
+                    this.dropZone.classList.add('is-dragover');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(type => {
+                this.dropZone.addEventListener(type, (e) => {
+                    e.preventDefault();
+                    this.dropZone.classList.toggle('is-dragover', false);
+                });
+            });
+
+            this.dropZone.addEventListener('drop', (e) => this.addFiles(e.dataTransfer.files));
+
+            this.fileList.addEventListener('click', (e) => {
+                const button = e.target.closest('[data-file-index]');
+                if (!button) return;
+
+                this.files.splice(Number(button.dataset.fileIndex), 1);
+                this.fileError.textContent = '';
+                this.syncFiles();
+                this.fileInput.focus();
+            });
+        },
+
+        addFiles(fileList) {
+            const { MAX_FILES, MAX_FILE_MB } = CONFIG.BOOKING;
+            let message = '';
+
+            Array.from(fileList).forEach(file => {
+                if (!file.type.startsWith('image/')) {
+                    message = 'Puoi allegare solo immagini.';
+                } else if (file.size > MAX_FILE_MB * 1024 * 1024) {
+                    message = `Ogni immagine può pesare al massimo ${MAX_FILE_MB} MB.`;
+                } else if (this.files.length >= MAX_FILES) {
+                    message = `Puoi allegare fino a ${MAX_FILES} immagini.`;
+                } else if (!this.files.some(f => f.name === file.name && f.size === file.size)) {
+                    this.files.push(file);
                 }
             });
 
-            return isValid;
+            this.fileError.textContent = message;
+            this.syncFiles();
         },
 
+        syncFiles() {
+            if (!this.fileInput) return;
+
+            // Keep the real input in step with the list, so the pictures travel with the form
+            try {
+                const transfer = new DataTransfer();
+                this.files.forEach(file => transfer.items.add(file));
+                this.fileInput.files = transfer.files;
+            } catch (e) { /* older browsers: the list is still shown, files go via WhatsApp */ }
+
+            this.previewUrls.forEach(url => URL.revokeObjectURL(url));
+            this.previewUrls = this.files.map(file => URL.createObjectURL(file));
+
+            this.fileList.textContent = '';
+            this.files.forEach((file, index) => {
+                const item = document.createElement('li');
+                item.className = 'upload__item';
+
+                const thumb = document.createElement('img');
+                thumb.className = 'upload__thumb';
+                thumb.src = this.previewUrls[index];
+                thumb.alt = '';
+
+                const name = document.createElement('span');
+                name.className = 'upload__name';
+                name.textContent = file.name;
+
+                const size = document.createElement('span');
+                size.className = 'upload__size';
+                size.textContent = `${(file.size / (1024 * 1024)).toFixed(1).replace('.', ',')} MB`;
+
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'upload__discard';
+                button.dataset.fileIndex = index;
+                button.setAttribute('aria-label', `Togli ${file.name}`);
+                button.innerHTML = '<span class="icon-close"></span>';
+
+                item.append(thumb, name, size, button);
+                this.fileList.appendChild(item);
+            });
+
+            this.fileList.hidden = this.files.length === 0;
+        },
+
+        // ----- Preferred date -----
+        // A small calendar in the site's own style. It collects a preference,
+        // not a confirmed slot: past days and Sundays (studio closed) are off.
+        setupCalendar() {
+            this.calendar = document.getElementById('booking-calendar');
+            this.dateInput = this.bookingForm.querySelector('[name="preferred-date"]');
+            if (!this.calendar || !this.dateInput) return;
+
+            const today = new Date();
+            this.calendarMin = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+            this.calendarView = new Date(this.calendarMin.getFullYear(), this.calendarMin.getMonth(), 1);
+            this.calendarLast = new Date(today.getFullYear(), today.getMonth() + CONFIG.BOOKING.MONTHS_AHEAD, 1);
+
+            this.calendar.addEventListener('click', (e) => {
+                const nav = e.target.closest('[data-calendar-nav]');
+                const day = e.target.closest('[data-date]');
+
+                if (nav) {
+                    const direction = Number(nav.dataset.calendarNav);
+                    this.calendarView = new Date(this.calendarView.getFullYear(), this.calendarView.getMonth() + direction, 1);
+                    this.renderCalendar();
+                    this.calendar.querySelector(`[data-calendar-nav="${direction}"]:not(:disabled)`)?.focus();
+                } else if (day) {
+                    // A second click on the chosen day clears the preference
+                    this.dateInput.value = this.dateInput.value === day.dataset.date ? '' : day.dataset.date;
+                    this.renderCalendar();
+                    this.calendar.querySelector(`[data-date="${day.dataset.date}"]`)?.focus();
+                }
+            });
+
+            this.renderCalendar();
+        },
+
+        renderCalendar() {
+            if (!this.calendar) return;
+
+            const year = this.calendarView.getFullYear();
+            const month = this.calendarView.getMonth();
+            const pad = (n) => String(n).padStart(2, '0');
+
+            const monthLabel = this.calendarView.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+            const offset = (new Date(year, month, 1).getDay() + 6) % 7; // weeks start on Monday
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const atStart = this.calendarView <= new Date(this.calendarMin.getFullYear(), this.calendarMin.getMonth(), 1);
+            const atEnd = this.calendarView >= this.calendarLast;
+
+            let cells = '<span class="calendar__blank"></span>'.repeat(offset);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month, day);
+                const iso = `${year}-${pad(month + 1)}-${pad(day)}`;
+                const isOff = date < this.calendarMin || date.getDay() === 0;
+                const isSelected = iso === this.dateInput.value;
+                const label = date.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+                cells += `<button type="button" class="calendar__day${isSelected ? ' is-selected' : ''}" data-date="${iso}" aria-label="${label}" aria-pressed="${isSelected}"${isOff ? ' disabled' : ''}>${day}</button>`;
+            }
+
+            const weekdays = ['L', 'M', 'M', 'G', 'V', 'S', 'D']
+                .map(letter => `<span class="calendar__weekday" aria-hidden="true">${letter}</span>`)
+                .join('');
+
+            const choice = this.getDateText();
+
+            this.calendar.innerHTML = `
+                <div class="calendar__header">
+                    <button type="button" class="calendar__nav" data-calendar-nav="-1" aria-label="Mese precedente"${atStart ? ' disabled' : ''}><span class="icon-arrow icon-arrow--left"></span></button>
+                    <span class="calendar__month" aria-live="polite">${monthLabel}</span>
+                    <button type="button" class="calendar__nav" data-calendar-nav="1" aria-label="Mese successivo"${atEnd ? ' disabled' : ''}><span class="icon-arrow"></span></button>
+                </div>
+                <div class="calendar__grid">${weekdays}${cells}</div>
+                <p class="calendar__choice" aria-live="polite">${choice ? `Preferenza: ${choice}` : 'Nessuna data scelta'}</p>
+            `;
+        },
+
+        // ----- Validation -----
         validateField(field) {
             const value = field.value.trim();
-            const fieldName = field.name;
             let errorMessage = '';
 
             // Clear previous errors
@@ -1088,10 +2117,10 @@
 
             // Required field validation
             if (field.hasAttribute('required') && !value) {
-                errorMessage = 'Questo campo \u00e8 obbligatorio';
+                errorMessage = 'Questo campo è obbligatorio';
             }
             // Email validation
-            else if (fieldName === 'email' && value && !this.isValidEmail(value)) {
+            else if (field.name === 'email' && value && !this.isValidEmail(value)) {
                 errorMessage = 'Inserisci un indirizzo email valido';
             }
 
@@ -1122,60 +2151,60 @@
             if (errorElement) {
                 errorElement.textContent = '';
             }
-            field.classList.remove('error');
-            field.removeAttribute('aria-invalid');
+            field.classList.toggle('error', false);
+            field.toggleAttribute('aria-invalid', false);
         },
 
-        showSuccess(message) {
-            this.showNotification(message, 'success');
-        },
-
+        // ----- Notifications -----
         showError(message) {
             this.showNotification(message, 'error');
         },
 
         showNotification(message, type) {
-            // Create notification element
             const notification = document.createElement('div');
             notification.className = `notification notification--${type}`;
             notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
             notification.innerHTML = `
                 <div class="notification__content">
-                    <p>${message}</p>
+                    <p></p>
                     <button class="notification__close" type="button" aria-label="Chiudi notifica">&times;</button>
                 </div>
             `;
+            notification.querySelector('p').textContent = message;
 
-            // Add to page
             document.body.appendChild(notification);
-
-            // Show notification
             setTimeout(() => notification.classList.add('show'), 100);
 
-            // Auto remove
-            const autoRemove = setTimeout(() => {
-                this.removeNotification(notification);
-            }, 5000);
+            const dismiss = () => {
+                clearTimeout(timer);
+                notification.classList.add('hide');
+                setTimeout(() => detach(notification), 400);
+            };
+            const timer = setTimeout(dismiss, 6000);
 
-            // Manual close
-            const closeBtn = notification.querySelector('.notification__close');
-            closeBtn.addEventListener('click', () => {
-                clearTimeout(autoRemove);
-                this.removeNotification(notification);
-            });
-        },
-
-        removeNotification(notification) {
-            notification.classList.add('hide');
-            setTimeout(() => detach(notification), 400);
+            notification.querySelector('.notification__close').addEventListener('click', dismiss);
         }
     };
-
     // ===== SCROLL ANIMATIONS MODULE =====
     const ScrollAnimations = {
         init() {
             this.setupReveal();
+            this.setupPlaceholders();
             this.setupFloatingActions();
+        },
+
+        // Static pictures get the same loading placeholder as the portfolio
+        setupPlaceholders() {
+            document.querySelectorAll('.about__photo').forEach(image => {
+                const frame = image.parentElement;
+                const markLoaded = () => frame.classList.add('has-image');
+
+                if (image.complete && image.naturalWidth > 0) {
+                    markLoaded();
+                } else {
+                    image.addEventListener('load', markLoaded, { once: true });
+                }
+            });
         },
 
         setupReveal() {
@@ -1190,12 +2219,16 @@
             const hero = document.querySelector('.hero');
 
             const setPastHero = (isPast) => {
-                // Coming back up to the hero: the title settles again, more gently
-                if (!isPast && document.body.classList.contains('is-past-hero')) {
-                    Effects.settleTitle(0.5);
-                }
+                const wasPast = document.body.classList.contains('is-past-hero');
                 document.body.classList.toggle('is-past-hero', isPast);
                 this.backToTopBtn?.classList.toggle('visible', isPast);
+
+                // The title loop rests while the hero is away and resumes with it
+                if (isPast) {
+                    Effects.stopTitleLoop();
+                } else if (wasPast) {
+                    Effects.startTitleLoop(false);
+                }
             };
 
             if (!hero || !window.IntersectionObserver) {
@@ -1205,6 +2238,12 @@
                     setPastHero(!entry.isIntersecting);
                 }, { threshold: 0.25 }).observe(hero);
             }
+
+            document.addEventListener('visibilitychange', () => {
+                if (Effects.isHeroVisible() && root.classList.contains('is-ready')) {
+                    Effects.startTitleLoop(false);
+                }
+            });
 
             this.backToTopBtn?.addEventListener('click', () => {
                 window.scrollTo({
@@ -1238,8 +2277,8 @@
         // Each module starts on its own: if one fails, the others (and the
         // intro below, which un-hides the hero) still run.
         const modules = [
-            Navigation, Theme, HeroVideo, Portfolio, Lightbox,
-            VideoShowcase, FAQ, Forms, ScrollAnimations, Accessibility
+            Navigation, Theme, FluidLines, LoopingVideos, CustomSelect, Portfolio, Lightbox,
+            FAQ, Forms, ScrollAnimations, Accessibility
         ];
 
         modules.forEach(module => {
@@ -1253,7 +2292,7 @@
         // The intro never blocks the page: it lifts on its own timer
         Preloader.init(() => {
             root.classList.add('is-ready');
-            Effects.settleTitle();
+            Effects.startTitleLoop(true);
         });
     }
 

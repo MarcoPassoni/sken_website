@@ -442,8 +442,10 @@ strong {
   display: inline;
 }
 /* ===== PRELOADER ===== */
-/* Short brand curtain. Content is never hidden behind it: if JS fails,
-   the failsafe animation removes it on its own. */
+/* Loading curtain. It covers the page from the first paint and is removed
+   at once when everything is already cached; otherwise the mark and the
+   bar fade in and the bar follows the real downloads (see Preloader in
+   main.js). If JS never runs, the failsafe animation clears it. */
 .preloader {
   position: fixed;
   inset: 0;
@@ -451,12 +453,11 @@ strong {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0b0b0c;
-  animation: preloader-failsafe 0.01s linear 4s forwards;
+  background: var(--color-bg);
+  animation: preloader-failsafe 0.01s linear 9s forwards;
 }
 
-html:not(.js) .preloader,
-html.no-intro .preloader {
+html:not(.js) .preloader {
   display: none;
 }
 
@@ -465,13 +466,19 @@ html.no-intro .preloader {
   flex-direction: column;
   align-items: center;
   gap: var(--space-8);
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.preloader.is-loading .preloader__content {
+  opacity: 1;
 }
 
 .preloader__bar {
   position: relative;
-  width: 96px;
+  width: 120px;
   height: 1px;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--color-line-strong);
   overflow: hidden;
 }
 
@@ -479,22 +486,16 @@ html.no-intro .preloader {
   content: "";
   position: absolute;
   inset: 0;
-  background: #f2f2f0;
-  transform: scaleX(0);
+  background: var(--color-text);
+  transform: scaleX(var(--progress, 0));
   transform-origin: left;
-  animation: preloader-bar 0.9s var(--ease-out) forwards;
+  transition: transform 0.4s ease-out;
 }
 
 .preloader.is-done {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.5s ease-out, visibility 0s linear 0.5s;
-}
-
-@keyframes preloader-bar {
-  to {
-    transform: scaleX(1);
-  }
 }
 
 @keyframes preloader-failsafe {
@@ -2457,59 +2458,30 @@ body::after {
   }
 }
 
-/* ----- Process videos: quiet play control over the poster ----- */
+/* ----- Looping videos -----
+   The poster (the video's own first frame) sits behind each video. Just
+   before the end the video fades out to it, rewinds and fades back in:
+   the restart is never seen (see LoopingVideos in main.js). */
 .video-showcase__media {
   position: relative;
   border-radius: var(--radius);
   overflow: hidden;
 }
 
-.video-showcase__play {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-start;
-  width: 100%;
-  padding: var(--space-4);
-  background: linear-gradient(to top, rgba(11, 11, 12, 0.45), rgba(11, 11, 12, 0) 40%);
-  border: 0;
-  color: #f2f2f0;
-  cursor: pointer;
+.video-showcase__media,
+.hero__media {
+  background-size: cover;
+  background-position: center;
 }
 
-.video-showcase__play-icon {
-  position: relative;
-  display: block;
-  width: 56px;
-  height: 56px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 50%;
-  background: rgba(11, 11, 12, 0.35);
-  transition: background-color var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out, transform var(--duration-base) var(--ease-out);
+.fx-loop,
+.js.is-ready .hero__video.fx-loop {
+  transition: opacity 0.6s ease-in-out;
 }
 
-.video-showcase__play-icon::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -7px 0 0 -4px;
-  border-style: solid;
-  border-width: 7px 0 7px 11px;
-  border-color: transparent transparent transparent currentColor;
-}
-
-.video-showcase__play:active .video-showcase__play-icon {
-  transform: scale(0.94);
-}
-
-@media (hover: hover) {
-  .video-showcase__play:hover .video-showcase__play-icon {
-    background: #f2f2f0;
-    border-color: #f2f2f0;
-    color: #0b0b0c;
-  }
+.fx-loop.is-rewinding,
+.js.is-ready .hero__video.fx-loop.is-rewinding {
+  opacity: 0;
 }
 
 /* ----- Lightbox image: its box is exactly the picture, so the tile can
@@ -2829,4 +2801,655 @@ body::after {
 
 .link-arrow {
   min-height: 44px; /* comfortable touch target */
+}
+
+/* ----- Loading placeholders -----
+   While a picture is on its way its frame shows a slow sheen and the mark;
+   if it cannot be loaded at all, the mark stays instead of an empty box. */
+.about__image {
+  position: relative;
+}
+
+.portfolio__image,
+.about__photo {
+  position: relative;
+  z-index: 1;
+}
+
+.portfolio__item::before,
+.about__image::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -100%;
+  width: 300%;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    color-mix(in srgb, var(--color-text) 8%, transparent) 50%,
+    transparent 60%
+  );
+  animation: fx-sheen 1.8s linear infinite;
+}
+
+.portfolio__item::after,
+.about__image::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  background: #000 url("../images/favicon.png") center / cover no-repeat;
+  opacity: 0.55;
+}
+
+.portfolio__item.has-image::before,
+.portfolio__item.has-image::after,
+.about__image.has-image::before,
+.about__image.has-image::after {
+  content: none;
+}
+
+.portfolio__item.is-broken::before {
+  animation: none;
+  opacity: 0;
+}
+
+.portfolio__item.is-broken {
+  cursor: default;
+}
+
+@keyframes fx-sheen {
+  from {
+    transform: translateX(-33%);
+  }
+
+  to {
+    transform: translateX(33%);
+  }
+}
+
+/* =====================================================================
+   BOOKING FORM: custom controls
+   ===================================================================== */
+
+/* ----- Select: drawn in the site's style (see CustomSelect in main.js).
+         The native element stays underneath as the source of truth. ----- */
+select.form__select option {
+  background: var(--color-bg-raised); /* fallback list (no JS): readable in both themes */
+  color: var(--color-text);
+}
+
+.select {
+  position: relative;
+  width: 100%;
+}
+
+.select.is-open {
+  z-index: 30;
+}
+
+.select__native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.select__button {
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.select__value {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select__button.is-placeholder .select__value {
+  color: var(--color-text-muted);
+}
+
+.select.is-open .select__button {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 1px var(--color-text);
+}
+
+.select__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 17.5rem;
+  padding: var(--space-1);
+  background: var(--color-bg-raised);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: select-in 0.22s var(--ease-out);
+}
+
+.select.is-up .select__list {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+
+.select__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-10) var(--space-2) var(--space-3);
+  border-radius: var(--radius);
+  font-size: var(--text-base);
+  line-height: 1.3;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.select__option.is-active {
+  background: color-mix(in srgb, var(--color-text) 9%, transparent);
+  color: var(--color-text);
+}
+
+.select__option.is-selected {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* Tick on the chosen option */
+.select__option.is-selected::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  width: 11px;
+  height: 6px;
+  margin-top: -5px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+}
+
+@keyframes select-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.portfolio__body-filters .select__button {
+  min-height: 44px;
+  background-color: transparent;
+  font-size: var(--text-sm);
+}
+
+.portfolio__body-filters .select__option {
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 600px) {
+  .portfolio__body-filters .select {
+    width: 13.75rem;
+  }
+}
+
+/* ----- Steps ----- */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.steps__item {
+  flex: 1;
+  height: 2px;
+  background: var(--color-line-strong);
+  transition: background-color var(--duration-base) ease-out;
+}
+
+.steps__item.is-done,
+.steps__item.is-current {
+  background: var(--color-text);
+}
+
+.steps__count {
+  margin-left: var(--space-2);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.booking__form:not(.is-enhanced) .steps {
+  display: none;
+}
+
+.form__step {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-4);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* Zero specificity, so the half-width groups above still apply */
+:where(.form__step) > * {
+  grid-column: 1 / -1;
+}
+
+.booking__form.is-enhanced .form__step {
+  animation: step-in 0.5s var(--ease-out);
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.form__legend {
+  margin-bottom: var(--space-5); /* a legend is not a grid item: it needs its own gap */
+  padding: 0;
+  font-size: var(--text-xl);
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--color-text);
+  outline: none;
+}
+
+.form__hint {
+  font-size: var(--text-xs);
+  line-height: 1.4;
+  color: var(--color-text-muted);
+}
+
+.form__nav {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.form__nav .btn {
+  flex: 1;
+}
+
+@media (min-width: 600px) {
+  .form__nav .btn {
+    flex: 0 1 auto;
+    min-width: 11rem;
+  }
+
+  .form__nav .btn--primary {
+    margin-left: auto;
+  }
+}
+
+/* ----- Choice chips (radio groups) ----- */
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.choice {
+  position: relative;
+  cursor: pointer;
+}
+
+.choice input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.choice > span {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0.6875rem var(--space-4);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  transition:
+    background-color var(--duration-fast) ease-out,
+    border-color var(--duration-fast) ease-out,
+    color var(--duration-fast) ease-out;
+}
+
+.choice small {
+  font-size: var(--text-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.choice input:checked + span {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-ink-contrast);
+}
+
+.choice input:checked + span small {
+  color: inherit;
+  opacity: 0.7;
+}
+
+.choice input:focus-visible + span {
+  outline: 2px solid var(--color-text);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) {
+  .choice input:not(:checked) + span:hover {
+    border-color: var(--color-text);
+    color: var(--color-text);
+  }
+}
+
+/* ----- Upload ----- */
+.upload {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-8) var(--space-5);
+  background: var(--color-bg);
+  border: 1px dashed var(--color-line-strong);
+  border-radius: var(--radius);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--duration-fast) ease-out, background-color var(--duration-fast) ease-out;
+}
+
+.upload__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.upload__title {
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.upload__hint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.upload.is-dragover,
+.upload:focus-within {
+  border-color: var(--color-text);
+  border-style: solid;
+}
+
+@media (hover: hover) {
+  .upload:hover {
+    border-color: var(--color-text);
+  }
+}
+
+.upload__list {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.upload__item {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  background: var(--color-bg-raised);
+  border-radius: var(--radius);
+}
+
+.upload__thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.upload__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.upload__size {
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.upload__discard {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.upload__discard .icon-close {
+  width: 12px;
+  height: 12px;
+}
+
+/* ----- Input with a unit ----- */
+.form__affix {
+  position: relative;
+}
+
+.form__affix .form__input {
+  padding-right: var(--space-10);
+}
+
+.form__affix-unit {
+  position: absolute;
+  top: 50%;
+  right: var(--space-4);
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+/* ----- Calendar ----- */
+.calendar {
+  max-width: 23rem;
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius);
+}
+
+.calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.calendar__month {
+  font-size: var(--text-base);
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-text);
+}
+
+.calendar__nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: none;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 50%;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.calendar__nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.calendar__weekday {
+  padding-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.calendar__day {
+  aspect-ratio: 1;
+  min-height: 38px;
+  padding: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease-out, border-color var(--duration-fast) ease-out;
+}
+
+.calendar__day:disabled {
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.calendar__day.is-selected {
+  background: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-ink-contrast);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .calendar__day:not(:disabled):not(.is-selected):hover,
+  .calendar__nav:not(:disabled):hover {
+    border-color: var(--color-text);
+  }
+}
+
+.calendar__choice {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-line);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ----- After sending ----- */
+.booking__done {
+  padding: var(--space-8) var(--space-6);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--radius);
+  outline: none;
+  animation: step-in 0.5s var(--ease-out);
+}
+
+.booking__done-title {
+  font-family: var(--font-display);
+  font-size: var(--text-h3-display);
+  font-weight: 800;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.booking__done-text {
+  max-width: 34rem;
+  margin-top: var(--space-4);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+}
+
+.booking__done-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+}
+/* ----- Fluid lines behind the page (see FluidLines in main.js) -----
+   The canvas sits behind everything, so page sections stop painting an
+   opaque background: plain ones are transparent, tinted ones become a thin
+   veil of the text colour that gives the same tone as before. */
+:root {
+  --color-tint-veil: rgba(255, 255, 255, 0.027);
+}
+
+:root.light {
+  --color-tint-veil: rgba(0, 0, 0, 0.04);
+}
+
+.fluid-lines {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.section {
+  background: transparent;
+}
+
+.section--tint,
+.footer {
+  background: var(--color-tint-veil);
+}
+
+@media (min-width: 900px) {
+  .hero {
+    background: transparent;
+  }
+}
+
+@media print {
+  .fluid-lines {
+    display: none;
+  }
 }
