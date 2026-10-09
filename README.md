@@ -1,5 +1,13 @@
 # @sken.blk - Portfolio Website
 
+> **Redesign (ottobre 2026).** Le sezioni qui sotto su preloader, logo LED, palette e tipografia descrivono la versione precedente. Stato attuale:
+> - **Palette** monocromatica (off-black `#0b0b0c` / bone `#f2f2f0`), nessun colore d'accento; tema chiaro e scuro via token CSS in `assets/css/main.css`.
+> - **Font**: Geist (testo) e Sofia Sans Extra Condensed (titoli), caricati da Bunny Fonts.
+> - **Breakpoint**: 600px, 900px, 1100px. Raggio 2px su controlli e media, cerchio solo per logo e pulsanti flottanti.
+> - **Immagini portfolio**: il sito usa le versioni WebP in `assets/images/portfolio/web/` (`-480`, `-960`, `-full`); gli originali restano in `assets/images/portfolio/`. Per aggiungere un lavoro servono le tre versioni WebP e una riga in `portfolioData` (`assets/js/main.js`).
+> - **Video**: i poster sono in `assets/images/videos/posters/`.
+> - **Effetti** (tutti opzionali, disattivati con `prefers-reduced-motion`): blocco `EFFECTS LAYER` in fondo a `main.css` e modulo `Effects` in `main.js`. Distorsione liquida via filtri SVG (`#fx-liquid-title`, `#fx-liquid-tile` in `index.html`), View Transitions per lightbox e cambio tema, animazioni legate allo scroll con `animation-timeline`.
+
 ## 📖 Descrizione Progetto
 
 Sito web portfolio per l'artista del tatuaggio **@sken.blk**, resident artist presso **Il Circo Nero Tattoo Milano**. Specializzato in dark tattoo, fluid tattoo e blackwork con un'estetica moderna e minimalista.

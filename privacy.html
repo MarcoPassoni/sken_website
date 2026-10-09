@@ -5,20 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Privacy Policy - @sken.blk Tattoo Artist">
     <title>Privacy Policy - @sken.blk</title>
+    <meta name="theme-color" content="#0b0b0c">
+    <script>
+        (function () {
+            var root = document.documentElement;
+            root.classList.add('js');
+            try {
+                if (localStorage.getItem('theme') === 'light') root.classList.replace('dark', 'light');
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="stylesheet" href="https://fonts.bunny.net/css?family=geist:400,500,600|sofia-sans-extra-condensed:800&display=swap">
     <link rel="stylesheet" href="./assets/css/main.css">
-    <link rel="icon" type="image/svg+xml" href="./assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="./assets/images/favicon.png">
 </head>
 <body>
-    <nav class="nav" role="navigation">
+    <nav class="nav nav--solid" aria-label="Navigazione">
         <div class="nav__container">
-            <a href="./index.html" class="nav__logo">
-                <img src="./assets/images/favicon.png" alt="@sken.blk logo" width="120" height="40">
+            <a href="./index.html" class="nav__logo logo-mark" aria-label="Torna alla home">
+                <img src="./assets/images/favicon.png" alt="@sken.blk logo" width="40" height="40">
             </a>
             <a href="./index.html" class="btn btn--secondary">Torna al sito</a>
         </div>
     </nav>
 
-    <main class="container" style="margin-top: 100px; margin-bottom: 60px;">
+    <main class="container legal">
         <h1>Privacy Policy</h1>
         <p><em>Ultimo aggiornamento: Ottobre 2025</em></p>
 
@@ -91,6 +103,6 @@
         <p>Per esercitare i tuoi diritti o per qualsiasi domanda relativa al trattamento dei dati, contattaci a: <a href="mailto:privacy@skenblk.com">privacy@skenblk.com</a></p>
     </main>
 
-    <script src="./assets/js/main.js"></script>
+    <script src="./assets/js/main.js" defer></script>
 </body>
 </html>
